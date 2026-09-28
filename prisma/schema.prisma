@@ -1,0 +1,465 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// CORE ENTITIES
+// ============================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  avatarUrl     String?
+  role          UserRole  @default(PERSONAL)
+  githubId      String?   @unique
+  gitlabId      String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  projects      ProjectMember[]
+  ownedProjects Project[]       @relation("ProjectOwner")
+  tasks         Task[]          @relation("TaskAssignee")
+  reportedTasks Task[]          @relation("TaskReporter")
+  comments      TaskComment[]
+  sessions      OpenCodeSession[]
+  notifications Notification[]
+  preferences   UserPreferences?
+  projectNotes  ProjectNote[]
+  activityLogs  ActivityLog[]
+
+  @@index([email])
+  @@index([githubId])
+  @@index([gitlabId])
+}
+
+enum UserRole {
+  PERSONAL  // Solo developer
+  TEAM      // Team member
+  ADMIN     // Team admin
+  CLIENT    // Read-only client access
+}
+
+model UserPreferences {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme           Theme    @default(SYSTEM)
+  defaultView     ViewMode @default(GRID)
+  projectsPath    String[] @default([]) // JSON array of scan paths
+  notifications   Json     @default("{}") // Per-channel preferences
+  shortcuts       Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum ViewMode {
+  GRID
+  LIST
+  TABLE
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  description     String?       @db.Text
+  path            String        @unique // Absolute filesystem path
+  repositoryUrl   String?       // GitHub/GitLab URL
+  status          ProjectStatus @default(ACTIVE)
+  visibility      Visibility    @default(PRIVATE)
+  techStack       String[]      @default([]) // Detected languages/frameworks
+  lastActivityAt  DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  ownerId         String
+  owner           User          @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members         ProjectMember[]
+  tasks           Task[]
+  gitCommits      GitCommit[]
+  branches        GitBranch[]
+  deployments     Deployment[]
+  sessions        OpenCodeSession[]
+  mcpServers      MCPServer[]
+  notes           ProjectNote[]
+  settings        ProjectSettings?
+  gitRemotes      GitRemote[]
+  notifications   Notification[]
+  activityLogs    ActivityLog[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([lastActivityAt])
+  @@index([path])
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  ON_HOLD
+  DEPRECATED
+}
+
+enum Visibility {
+  PRIVATE
+  TEAM
+  PUBLIC
+  CLIENT
+}
+
+model ProjectMember {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      MemberRole   @default(MEMBER)
+  joinedAt  DateTime     @default(now())
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model ProjectSettings {
+  id                    String   @id @default(cuid())
+  projectId             String   @unique
+  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  autoScan              Boolean  @default(true)
+  scanIntervalMinutes   Int      @default(60)
+  gitRemoteSync         Boolean  @default(true)
+  taskBoardEnabled      Boolean  @default(true)
+  timeTrackingEnabled   Boolean  @default(false)
+  clientShareToken      String?  @unique // For client portal access
+  customFields          Json     @default("{}")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// ============================================================
+// TASK MANAGEMENT
+// ============================================================
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(BACKLOG)
+  priority    Priority     @default(MEDIUM)
+  position    Int          @default(0) // For drag-drop ordering
+  storyPoints Int?
+  dueDate     DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId  String?
+  assignee    User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  reporterId  String
+  reporter    User         @relation("TaskReporter", fields: [reporterId], references: [id])
+  comments    TaskComment[]
+  parentId    String?
+  parent      Task?        @relation("Subtasks", fields: [parentId], references: [id])
+  subtasks    Task[]       @relation("Subtasks")
+  tags        String[]     @default([])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([projectId, status])
+  @@index([assigneeId])
+  @@index([parentId])
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// GIT INTEGRATION
+// ============================================================
+
+model GitCommit {
+  id            String   @id @default(cuid())
+  sha           String
+  shortSha      String
+  message       String   @db.Text
+  authorName    String
+  authorEmail   String
+  authorDate    DateTime
+  committerDate DateTime
+  url           String?  // GitHub/GitLab commit URL
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  branchName    String
+  isMerge       Boolean  @default(false)
+  parents       String[] @default([])
+  stats         Json?    // { additions, deletions, files }
+  createdAt     DateTime @default(now())
+
+  @@unique([projectId, sha])
+  @@index([projectId, authorDate])
+  @@index([branchName])
+}
+
+model GitBranch {
+  id            String   @id @default(cuid())
+  name          String
+  isDefault     Boolean  @default(false)
+  isRemote      Boolean  @default(false)
+  lastCommitSha String?
+  lastCommitDate DateTime?
+  ahead         Int      @default(0)
+  behind        Int      @default(0)
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([projectId, name])
+  @@index([projectId])
+}
+
+model GitRemote {
+  id        String   @id @default(cuid())
+  name      String   // "origin", "upstream"
+  url       String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, name])
+}
+
+// ============================================================
+// DEPLOYMENTS
+// ============================================================
+
+model Deployment {
+  id          String           @id @default(cuid())
+  provider    DeploymentProvider
+  externalId  String           // Vercel deployment ID, Netlify site ID, etc.
+  url         String?          // Preview/production URL
+  status      DeploymentStatus
+  environment DeploymentEnv
+  commitSha   String?
+  branch      String?
+  triggeredBy String?          // "git-push", "manual", "api"
+  logsUrl     String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  projectId   String
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+
+  @@index([projectId, createdAt])
+  @@index([provider, externalId])
+}
+
+enum DeploymentProvider {
+  VERCEL
+  NETLIFY
+  CLOUDFLARE
+  DOCKER
+  KUBERNETES
+  OTHER
+}
+
+enum DeploymentStatus {
+  PENDING
+  BUILDING
+  DEPLOYING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum DeploymentEnv {
+  PREVIEW
+  PRODUCTION
+  STAGING
+  DEVELOPMENT
+}
+
+// ============================================================
+// OPENCODE / AI SESSIONS
+// ============================================================
+
+model OpenCodeSession {
+  id              String   @id @default(cuid())
+  sessionId       String   @unique // OpenCode session ID
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model           String   // e.g., "opencode/gpt-6-sol"
+  provider        String   // "opencode", "nvidia", "ollama"
+  status          SessionStatus @default(ACTIVE)
+  title           String?  // First user message or generated
+  messageCount    Int      @default(0)
+  tokenUsage      Json?    // { input, output, cache, cost }
+  startedAt       DateTime @default(now())
+  endedAt         DateTime?
+  metadata        Json?    // Tools used, files modified, etc.
+
+  @@index([projectId, startedAt])
+  @@index([userId, startedAt])
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+// ============================================================
+// MCP SERVERS
+// ============================================================
+
+model MCPServer {
+  id          String   @id @default(cuid())
+  name        String   // "supabase", "github", "netlify", "cloudflare"
+  type        String   // "remote", "local"
+  url         String?
+  status      MCPStatus @default(UNKNOWN)
+  lastPing    DateTime?
+  capabilities Json?   // Tools, resources, prompts available
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  isGlobal    Boolean  @default(false) // Not project-specific
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([name])
+}
+
+enum MCPStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  UNKNOWN
+}
+
+// ============================================================
+// NOTES & DOCUMENTATION
+// ============================================================
+
+model ProjectNote {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text // Markdown
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isPinned  Boolean  @default(false)
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // Action URLs, metadata
+  read      Boolean          @default(false)
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project?         @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_UPDATED
+  COMMENT_ADDED
+  DEPLOYMENT_SUCCESS
+  DEPLOYMENT_FAILED
+  GIT_PUSH
+  MCP_STATUS_CHANGE
+  SESSION_COMPLETED
+  MENTION
+  SYSTEM
+}
+
+// ============================================================
+// ACTIVITY LOG (Audit Trail)
+// ============================================================
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  action    String   // "project.created", "task.moved", "deploy.started"
+  entityType String  // "Project", "Task", "Deployment"
+  entityId  String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  metadata  Json?    // Before/after state, diff
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+}
