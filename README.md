@@ -50,21 +50,23 @@ pnpm dev
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | Neon PostgreSQL connection string | Yes |
-| `NEXTAUTH_SECRET` | Secret for NextAuth (generate with `openssl rand -base64 32`) | Yes |
-| `NEXTAUTH_URL` | Base URL of your application | Yes |
-| `GITHUB_ID` | GitHub OAuth client ID | No* |
-| `GITHUB_SECRET` | GitHub OAuth client secret | No* |
-| `GITLAB_ID` | GitLab OAuth client ID | No* |
-| `GITLAB_SECRET` | GitLab OAuth client secret | No* |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-| `VERCEL_TOKEN` | Vercel API token for deployment tracking | No |
-| `NEXT_PUBLIC_APP_URL` | Public app URL (defaults to NEXTAUTH_URL) | No |
+| Variable                        | Description                                                   | Required |
+| ------------------------------- | ------------------------------------------------------------- | -------- |
+| `DATABASE_URL`                  | Neon PostgreSQL connection string                             | Yes      |
+| `NEXTAUTH_SECRET`               | Secret for NextAuth (generate with `openssl rand -base64 32`) | Yes      |
+| `NEXTAUTH_URL`                  | Base URL of your application                                  | Yes      |
+| `GITHUB_ID`                     | GitHub OAuth client ID                                        | No*      |
+| `GITHUB_SECRET`                 | GitHub OAuth client secret                                    | No*      |
+| `GITLAB_ID`                     | GitLab OAuth client ID                                        | No*      |
+| `GITLAB_SECRET`                 | GitLab OAuth client secret                                    | No*      |
+| `DEMO_EMAIL`                    | Development/test-only credentials login email                | No       |
+| `DEMO_PASSWORD`                 | Development/test-only credentials login password             | No       |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                                          | Yes      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key                                        | Yes      |
+| `VERCEL_TOKEN`                  | Vercel API token for deployment tracking                      | No       |
+| `NEXT_PUBLIC_APP_URL`           | Public app URL (defaults to NEXTAUTH_URL)                     | No       |
 
-*At least one OAuth provider (GitHub or GitLab) is required for authentication.
+*OAuth buttons are available only when both credentials for that provider are configured. Credentials login is available only outside production when both `DEMO_EMAIL` and `DEMO_PASSWORD` are configured.
 
 ## Project Structure
 
@@ -72,7 +74,7 @@ pnpm dev
 projecthub/
 ├── app/                    # Next.js App Router
 │   ├── (auth)/            # Auth routes (login, callback)
-│   ├── (dashboard)/       # Protected dashboard routes
+│   ├── dashboard/         # Protected dashboard routes
 │   ├── (client)/          # Client portal routes
 │   ├── api/               # API route handlers
 │   └── layout.tsx         # Root layout
@@ -142,6 +144,7 @@ docker compose down   # Stop self-hosted stack
 ## Features
 
 ### MVP v0.1 (Current)
+
 - [x] Project dashboard with grid/list views
 - [x] Git repository scanner (local)
 - [x] Git remote sync (GitHub/GitLab)
@@ -151,6 +154,7 @@ docker compose down   # Stop self-hosted stack
 - [x] Quick actions (VS Code, Terminal, Browser)
 
 ### MVP v0.2 (Planned)
+
 - [ ] Real-time sync (Supabase Realtime)
 - [ ] Deployment tracking (Vercel, Netlify, Cloudflare)
 - [ ] OpenCode session tracking
@@ -158,6 +162,7 @@ docker compose down   # Stop self-hosted stack
 - [ ] Project notes (Markdown editor)
 
 ### Post-MVP
+
 - [ ] Time tracking
 - [ ] Gantt view
 - [ ] Client portal
