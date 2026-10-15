@@ -35,4 +35,7 @@ yarn-error.log*
 .env.mcp.template
 
 # Prisma
-prisma/migrations
+# prisma/migrations
+
+# TypeScript build info
+tsconfig.tsbuildinfo
