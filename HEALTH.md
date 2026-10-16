@@ -56,10 +56,11 @@ Vercel's CLI echoed the Neon `DATABASE_URL` (including the password) into the
 terminal while rejecting a malformed `env add`. Rotate the Neon role password if
 that session log is shared or stored anywhere.
 
-The demo password `projecthub-demo-2026` was committed in `bd23e2a` as a seed
-fallback and was a live credential. It has been rotated; the new value lives in
+The demo password (see the `bd23e2a` diff) was committed as a seed fallback and
+was a live credential. It has been rotated; the new value lives in
 `~/.secrets/projecthub` and is never committed. `scripts/secret-scan.sh` runs on
-every pre-push and blocks that class of regression.
+every pre-push and blocks that class of regression — it caught this very
+sentence on the first attempt.
 
 Git history still contains the old string. Rewriting it is not worth the risk on
 a live repo now that the value is rotated and the repo is private.
