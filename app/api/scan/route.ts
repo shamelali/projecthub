@@ -3,9 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { scanDirectoryForProjects } from '@/lib/git/scanner';
+import { isLocalScanEnabled } from '@/lib/local-scan';
 import { isPathWithinConfiguredPath } from '@/lib/path-security';
 
 export async function POST(req: NextRequest) {
+  if (!isLocalScanEnabled()) {
+    return NextResponse.json({ error: 'Local scanning is not enabled' }, { status: 404 });
+  }
+
   const session = await auth();
 
   if (!session?.user?.id) {
