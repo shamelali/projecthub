@@ -6,7 +6,6 @@ import { KanbanBoard } from '@/components/tasks/kanban-board';
 import { NewTaskForm } from '@/components/tasks/new-task-form';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { projectAccessWhere } from '@/lib/permissions';

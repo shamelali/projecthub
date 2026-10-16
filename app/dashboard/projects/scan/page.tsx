@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Check, FolderGit2, GitBranch, Plus, Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +23,6 @@ interface ScannedProject {
 }
 
 export default function ScanProjectsPage() {
-  const router = useRouter();
   const [path, setPath] = useState('/home/user/projects');
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState<ScannedProject[]>([]);
