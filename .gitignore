@@ -30,6 +30,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Vercel pulled env (contains production secrets)
+.env.vercel
+.vercel
+
 # MCP tokens
 .env.mcp
 .env.mcp.template

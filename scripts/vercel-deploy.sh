@@ -12,8 +12,13 @@ if [ ! -f .vercel/project.json ]; then
   vercel link --yes
 fi
 
-# Pull env vars
+# Pull env vars (writes .env.vercel — gitignored, never commit)
 vercel env pull .env.vercel
 
-echo "✅ Vercel ready"
-echo "Run: vercel --prod"
+echo ""
+echo "✅ Vercel linked"
+echo "Apply production migrations with:"
+echo "  set -a && . ./.env.vercel && set +a && pnpm db:migrate:deploy"
+echo ""
+echo "Then deploy:"
+echo "  vercel --prod"
