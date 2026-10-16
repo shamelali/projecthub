@@ -1,7 +1,9 @@
 import { defineConfig } from '@neon/config/v1';
 
 export default defineConfig({
-  // Declare your Neon services here
+  // Auth is self-hosted Better Auth running inside this Next.js app, storing
+  // users and sessions in this database. Neon Managed Auth is intentionally
+  // off: its SDK requires Next >= 16.
   auth: false,
   // Branch policy: per-branch tuning
   branch: (branch) => {

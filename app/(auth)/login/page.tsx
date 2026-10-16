@@ -4,10 +4,7 @@ import { LoginForm } from './login-form';
 
 function getAuthErrorMessage(error?: string) {
   if (!error) return undefined;
-  if (error === 'CredentialsSignin') {
-    return 'Invalid demo email or password.';
-  }
-  return 'Unable to sign in. Please try again.';
+  return 'Unable to sign in. Please check your details and try again.';
 }
 
 export default async function LoginPage({

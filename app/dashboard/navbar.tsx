@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { LayoutDashboard, LogOut, Settings } from 'lucide-react';
-import { signOut } from 'next-auth/react';
+
+import { authClient } from '@/lib/auth-client';
 
 export function Navbar({
   user,
@@ -36,7 +37,7 @@ export function Navbar({
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{user.name || user.email}</span>
             <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
+              onClick={() => void authClient.signOut({ fetchOptions: { onSuccess: () => {} } })}
               className="text-muted-foreground hover:text-foreground"
             >
               <LogOut className="h-4 w-4" />

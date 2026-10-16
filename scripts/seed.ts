@@ -1,21 +1,44 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from 'better-auth/crypto';
 
 const db = new PrismaClient();
+
+const DEMO_EMAIL = 'demo@projecthub.dev';
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'projecthub-demo-2026';
 
 async function main() {
   console.log('Seeding database...');
 
   // Create demo user
   const user = await db.user.upsert({
-    where: { email: 'demo@projecthub.dev' },
+    where: { email: DEMO_EMAIL },
     update: {},
     create: {
-      email: 'demo@projecthub.dev',
+      email: DEMO_EMAIL,
       name: 'Demo User',
       role: 'PERSONAL',
     },
   });
   console.log(`  User: ${user.email}`);
+
+  // Give the demo user a real credential account so Better Auth can verify a
+  // password. Without this the user exists but cannot sign in.
+  const existingCredential = await db.account.findFirst({
+    where: { userId: user.id, providerId: 'credential' },
+  });
+
+  if (!existingCredential) {
+    await db.account.create({
+      data: {
+        id: user.id,
+        accountId: user.id,
+        providerId: 'credential',
+        userId: user.id,
+        password: await hashPassword(DEMO_PASSWORD),
+      },
+    });
+    console.log(`  Credential account created (password: ${DEMO_PASSWORD})`);
+  }
 
   // Create user preferences
   await db.userPreferences.upsert({
@@ -231,7 +254,7 @@ async function main() {
   });
   console.log('  Created notifications');
 
-  console.log('\nSeed complete! Sign in with: demo@projecthub.dev');
+  console.log(`\nSeed complete! Sign in with: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
 }
 
 main()

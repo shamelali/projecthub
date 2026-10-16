@@ -1,108 +1,49 @@
-import { PrismaAdapter } from '@auth/prisma-adapter';
+import { cache } from 'react';
+import { headers } from 'next/headers';
 import type { UserRole } from '@prisma/client';
-import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import GitHub from 'next-auth/providers/github';
-import GitLab from 'next-auth/providers/gitlab';
+import { toNextJsHandler } from 'better-auth/next-js';
 
-import { db } from '@/lib/db';
+import { authServer } from '@/lib/auth-server';
 
-const isConfigured = (value: string | undefined) => Boolean(value?.trim());
-const isDemoCredentialsEnabled =
-  (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') &&
-  isConfigured(process.env.DEMO_EMAIL) &&
-  isConfigured(process.env.DEMO_PASSWORD);
+export interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  image?: string | null;
+  role: UserRole;
+}
 
-const providers = [
-  isConfigured(process.env.GITHUB_ID) && isConfigured(process.env.GITHUB_SECRET)
-    ? GitHub({
-        clientId: process.env.GITHUB_ID,
-        clientSecret: process.env.GITHUB_SECRET,
-        allowDangerousEmailAccountLinking: false,
-      })
-    : null,
-  isConfigured(process.env.GITLAB_ID) && isConfigured(process.env.GITLAB_SECRET)
-    ? GitLab({
-        clientId: process.env.GITLAB_ID,
-        clientSecret: process.env.GITLAB_SECRET,
-        allowDangerousEmailAccountLinking: false,
-      })
-    : null,
-  isDemoCredentialsEnabled
-    ? Credentials({
-        name: 'Demo Account',
-        credentials: {
-          email: { label: 'Email', type: 'email' },
-          password: { label: 'Password', type: 'password' },
-        },
-        async authorize(credentials) {
-          const email = credentials?.email;
-          const password = credentials?.password;
+/**
+ * Session accessor shaped like the old Auth.js `auth()` so that call sites
+ * across the app (`auth()` then `session?.user?.id`) keep working unchanged.
+ *
+ * The Better Auth user id *is* the `User` primary key, so the id returned here
+ * is the same value stored on projects, tasks, and preferences.
+ */
+export const auth = cache(async (): Promise<{ user: SessionUser } | null> => {
+  const result = await authServer.api.getSession({ headers: await headers() });
+  const user = result?.user;
 
-          if (
-            typeof email !== 'string' ||
-            typeof password !== 'string' ||
-            email !== process.env.DEMO_EMAIL ||
-            password !== process.env.DEMO_PASSWORD
-          ) {
-            return null;
-          }
+  if (!user) {
+    return null;
+  }
 
-          const user = await db.user.upsert({
-            where: { email },
-            update: {},
-            create: { email, name: email.split('@')[0] },
-          });
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        },
-      })
-    : null,
-].filter((provider) => provider !== null);
-
-export const configuredProviders = {
-  github: isConfigured(process.env.GITHUB_ID) && isConfigured(process.env.GITHUB_SECRET),
-  gitlab: isConfigured(process.env.GITLAB_ID) && isConfigured(process.env.GITLAB_SECRET),
-  credentials: isDemoCredentialsEnabled,
-};
-
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(db),
-  session: { strategy: 'jwt' },
-  pages: {
-    signIn: '/login',
-  },
-  providers,
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user?.id) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-
-      const tokenId = typeof token.id === 'string' ? token.id : undefined;
-
-      if (tokenId && !token.role) {
-        const currentUser = await db.user.findUnique({
-          where: { id: tokenId },
-          select: { role: true },
-        });
-        token.role = currentUser?.role;
-      }
-
-      return token;
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name || user.email,
+      image: user.image ?? null,
+      role: (user.role as UserRole | undefined) ?? 'PERSONAL',
     },
-    async session({ session, token }) {
-      if (session.user && typeof token.id === 'string') {
-        session.user.id = token.id;
-        session.user.role = typeof token.role === 'string' ? (token.role as UserRole) : 'PERSONAL';
-      }
-      return session;
-    },
-  },
+  };
 });
+
+export const handlers = toNextJsHandler(authServer);
+
+/** Providers offered on the sign-in screen. */
+export const configuredProviders = {
+  github: Boolean(process.env.GITHUB_ID && process.env.GITHUB_SECRET),
+  gitlab: Boolean(process.env.GITLAB_ID && process.env.GITLAB_SECRET),
+  emailAndPassword: true,
+};
