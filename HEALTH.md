@@ -14,12 +14,27 @@ _Updated 2026-10-16. Verified against actual command output, not aspirational._
 
 ## Deployment ✅
 
-- **Live:** https://projecthub.vercel.app
+- **Live:** https://projecthub-ashy-sigma.vercel.app
+- `projecthub.vercel.app` is **NOT** this project — it is claimed by another
+  project on a different team (Vercel returns 409 `owned-on-other-team`). Do not
+  use it as `NEXTAUTH_URL`.
 - Scope `duta-integra` (Hobby, $0). Project `projecthub`, `prj_HGYMvxl3AWm43FqamAA3D88KK3jg`
-- Env vars set for Production + Preview: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`,
+- Env vars for Production + Preview: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`,
   `NEXTAUTH_SECRET`, `AUTH_TRUST_HOST=true`, `NEXTAUTH_URL`
 - `postinstall: prisma generate` is required — Vercel caches dependencies and
   otherwise fails with `PrismaClientInitializationError` on `/api/projects`
+- Dark theme is the default (`html.dark` + `color-scheme: dark`)
+
+## Gotcha: commit author must be a real GitHub identity
+
+The repo was authored as `shamelali@example.com`, which maps to no GitHub
+account. Vercel blocked every deploy with:
+
+> The deployment was blocked because Vercel couldn't find a Git account for the
+> commit author.
+
+Local `git config user.email` is now `shamelali@gmail.com`. A placeholder email
+here silently blocks all deployments.
 
 ## Blockers
 
