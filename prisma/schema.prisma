@@ -6,7 +6,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Runtime traffic uses Neon's pooled (PgBouncer) endpoint — safe for the
+  // bursty concurrency of serverless functions.
+  url = env("DATABASE_URL")
+  // Migrations (prisma migrate) must bypass PgBouncer: transaction pooling does
+  // not support session state, which fails with
+  // `prepared statement "s0" already exists`.
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // ============================================================
