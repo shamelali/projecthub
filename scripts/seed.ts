@@ -3,8 +3,22 @@ import { hashPassword } from 'better-auth/crypto';
 
 const db = new PrismaClient();
 
-const DEMO_EMAIL = 'demo@projecthub.dev';
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'projecthub-demo-2026';
+/** Reads a required env var, failing loudly rather than falling back. */
+function requireEnv(name: string, hint: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is required to seed the demo login.\n${hint}`);
+  }
+  return value;
+}
+
+const DEMO_EMAIL = process.env.DEMO_EMAIL ?? 'demo@projecthub.dev';
+// No default on purpose. A password committed here would be a live credential
+// in git history, so seeding refuses to run without an explicit one.
+const DEMO_PASSWORD = requireEnv(
+  'DEMO_PASSWORD',
+  'Generate one with:\n  openssl rand -base64 24\nThen export it before running pnpm db:seed.'
+);
 
 async function main() {
   console.log('Seeding database...');
@@ -20,6 +34,17 @@ async function main() {
     },
   });
   console.log(`  User: ${user.email}`);
+
+  // Make the seed idempotent. Projects cascade to their tasks, project notes,
+  // and members, so removing the demo user's projects clears the generated
+  // dataset. Without this, every `pnpm db:seed` duplicated all 14 tasks.
+  const { count: removedProjects } = await db.project.deleteMany({
+    where: { ownerId: user.id },
+  });
+
+  if (removedProjects > 0) {
+    console.log(`  Removed ${removedProjects} previously seeded project(s)`);
+  }
 
   // Give the demo user a real credential account so Better Auth can verify a
   // password. Without this the user exists but cannot sign in.
@@ -254,7 +279,9 @@ async function main() {
   });
   console.log('  Created notifications');
 
-  console.log(`\nSeed complete! Sign in with: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+  // Never print the password: this output lands in terminal scrollback and CI logs.
+  console.log(`\nSeed complete! Sign in with: ${DEMO_EMAIL}`);
+  console.log('  password: value of DEMO_PASSWORD (not shown)');
 }
 
 main()
