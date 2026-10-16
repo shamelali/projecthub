@@ -59,8 +59,8 @@ pnpm dev
 | `GITHUB_SECRET`                 | GitHub OAuth client secret                                    | No*      |
 | `GITLAB_ID`                     | GitLab OAuth client ID                                        | No*      |
 | `GITLAB_SECRET`                 | GitLab OAuth client secret                                    | No*      |
-| `DEMO_EMAIL`                    | Development/test-only credentials login email                | No       |
-| `DEMO_PASSWORD`                 | Development/test-only credentials login password             | No       |
+| `DEMO_EMAIL`                    | Development/test-only credentials login email                 | No       |
+| `DEMO_PASSWORD`                 | Development/test-only credentials login password              | No       |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                                          | Yes      |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key                                        | Yes      |
 | `VERCEL_TOKEN`                  | Vercel API token for deployment tracking                      | No       |

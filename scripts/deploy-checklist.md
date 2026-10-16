@@ -1,6 +1,7 @@
 # 🚀 ProjectHub Deploy Checklist
 
 ## Pre-Deploy
+
 - [ ] Env vars set in Vercel
   - `DATABASE_URL` (Neon production)
   - `NEXTAUTH_SECRET` (32+ chars)
@@ -12,6 +13,7 @@
 - [ ] GitHub repo connected to Vercel
 
 ## Vercel Deployment
+
 1. Import GitHub repo → projecthub
 2. Framework: Next.js
 3. Root Directory: `/`
@@ -21,6 +23,7 @@
 7. Deploy → Production
 
 ## Cloudflare Pages (Static Assets / Workers)
+
 - [ ] Connect Cloudflare Pages to GitHub
 - [ ] Build output: `.next`
 - [ ] Functions directory: `app`
@@ -28,6 +31,7 @@
 - [ ] Custom domain configured
 
 ## Post-Deploy
+
 - [ ] Run `pnpm db:migrate` on prod
 - [ ] Smoke test login, dashboard, projects
 - [ ] Check logs in Vercel → Functions
@@ -35,10 +39,12 @@
 - [ ] Set up preview deployments for PRs
 
 ## Rollback Plan
+
 - Vercel: Promote previous deployment
 - DB: Restore Neon backup point-in-time
 
 ## Security
+
 - [ ] Rotate `NEXTAUTH_SECRET` in prod
 - [ ] Enable Vercel Protection rules
 - [ ] Cloudflare WAF enabled

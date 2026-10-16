@@ -1,11 +1,12 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { deleteTask } from "@/lib/actions/tasks";
+import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { deleteTask } from '@/lib/actions/tasks';
 
 interface TaskCardProps {
   task: {
@@ -27,14 +28,14 @@ export function TaskCard({ task }: TaskCardProps) {
 
   const priorityVariant = (priority: string) => {
     switch (priority) {
-      case "CRITICAL":
-        return "destructive";
-      case "HIGH":
-        return "default";
-      case "MEDIUM":
-        return "secondary";
+      case 'CRITICAL':
+        return 'destructive';
+      case 'HIGH':
+        return 'default';
+      case 'MEDIUM':
+        return 'secondary';
       default:
-        return "outline";
+        return 'outline';
     }
   };
 
@@ -54,7 +55,7 @@ export function TaskCard({ task }: TaskCardProps) {
         </div>
         <div className="mt-2 flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
-            {task.assignee?.name || "Unassigned"}
+            {task.assignee?.name || 'Unassigned'}
           </span>
           <Badge variant={priorityVariant(task.priority)} className="text-[10px]">
             {task.priority}

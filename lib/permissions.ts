@@ -1,5 +1,6 @@
-import type { Prisma } from "@prisma/client";
-import { db } from "@/lib/db";
+import type { Prisma } from '@prisma/client';
+
+import { db } from '@/lib/db';
 
 export function projectAccessWhere(userId: string): Prisma.ProjectWhereInput {
   return {
@@ -14,7 +15,7 @@ export async function requireProjectAccess(userId: string, projectId: string) {
   });
 
   if (!project) {
-    throw new Error("Forbidden");
+    throw new Error('Forbidden');
   }
 
   return project;
@@ -27,7 +28,7 @@ export async function requireTaskAccess(userId: string, taskId: string) {
   });
 
   if (!task) {
-    throw new Error("Forbidden");
+    throw new Error('Forbidden');
   }
 
   return task;

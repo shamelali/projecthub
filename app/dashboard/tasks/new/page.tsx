@@ -1,13 +1,14 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { projectAccessWhere } from "@/lib/permissions";
-import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { createTask } from "@/lib/actions/tasks";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { createTask } from '@/lib/actions/tasks';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { projectAccessWhere } from '@/lib/permissions';
 
 export default async function NewTaskPage({
   searchParams,
@@ -15,17 +16,17 @@ export default async function NewTaskPage({
   searchParams: Promise<{ projectId?: string; status?: string }>;
 }) {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session) redirect('/login');
 
   const { projectId, status } = await searchParams;
 
-  if (!projectId) redirect("/dashboard/tasks");
+  if (!projectId) redirect('/dashboard/tasks');
 
   const project = await db.project.findFirst({
     where: { id: projectId, ...projectAccessWhere(session.user.id) },
   });
 
-  if (!project) redirect("/dashboard/tasks");
+  if (!project) redirect('/dashboard/tasks');
 
   const users = await db.user.findMany({
     select: { id: true, name: true, email: true },
@@ -53,7 +54,7 @@ export default async function NewTaskPage({
         <CardContent>
           <form action={createTask} className="space-y-6">
             <input type="hidden" name="projectId" value={project.id} />
-            <input type="hidden" name="status" value={status || "TODO"} />
+            <input type="hidden" name="status" value={status || 'TODO'} />
 
             <div className="space-y-2">
               <label htmlFor="title" className="text-sm font-medium">

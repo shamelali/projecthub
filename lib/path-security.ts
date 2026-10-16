@@ -1,4 +1,4 @@
-import { isAbsolute, relative, resolve } from "path";
+import { isAbsolute, relative, resolve } from 'path';
 
 export function isPathWithinConfiguredPath(
   candidatePath: string,
@@ -10,9 +10,6 @@ export function isPathWithinConfiguredPath(
     const root = resolve(configuredPath);
     const relativePath = relative(root, candidate);
 
-    return (
-      relativePath === "" ||
-      (!relativePath.startsWith("..") && !isAbsolute(relativePath))
-    );
+    return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath));
   });
 }

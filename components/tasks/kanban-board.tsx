@@ -1,10 +1,12 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { TaskCard } from "./task-card";
-import { moveTask } from "@/lib/actions/tasks";
+import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { moveTask } from '@/lib/actions/tasks';
+
+import { TaskCard } from './task-card';
 
 interface KanbanBoardProps {
   projectId: string;
@@ -19,23 +21,23 @@ interface KanbanBoardProps {
 }
 
 const columns = [
-  { id: "BACKLOG", label: "Backlog", color: "bg-gray-400" },
-  { id: "TODO", label: "To Do", color: "bg-blue-400" },
-  { id: "IN_PROGRESS", label: "In Progress", color: "bg-yellow-400" },
-  { id: "IN_REVIEW", label: "In Review", color: "bg-purple-400" },
-  { id: "DONE", label: "Done", color: "bg-green-500" },
+  { id: 'BACKLOG', label: 'Backlog', color: 'bg-gray-400' },
+  { id: 'TODO', label: 'To Do', color: 'bg-blue-400' },
+  { id: 'IN_PROGRESS', label: 'In Progress', color: 'bg-yellow-400' },
+  { id: 'IN_REVIEW', label: 'In Review', color: 'bg-purple-400' },
+  { id: 'DONE', label: 'Done', color: 'bg-green-500' },
 ];
 
 export function KanbanBoard({ projectId, tasks }: KanbanBoardProps) {
   const router = useRouter();
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
-    e.dataTransfer.setData("taskId", taskId);
+    e.dataTransfer.setData('taskId', taskId);
   };
 
   const handleDrop = async (e: React.DragEvent, status: string) => {
     e.preventDefault();
-    const taskId = e.dataTransfer.getData("taskId");
+    const taskId = e.dataTransfer.getData('taskId');
     if (!taskId) return;
 
     const columnTasks = tasks.filter((t) => t.status === status);
@@ -65,15 +67,15 @@ export function KanbanBoard({ projectId, tasks }: KanbanBoardProps) {
               <div className="flex items-center gap-2">
                 <div className={`h-2 w-2 rounded-full ${column.color}`} />
                 <span className="text-sm font-medium">{column.label}</span>
-                <span className="text-xs text-muted-foreground">
-                  {columnTasks.length}
-                </span>
+                <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={() => router.push(`/dashboard/tasks/new?projectId=${projectId}&status=${column.id}`)}
+                onClick={() =>
+                  router.push(`/dashboard/tasks/new?projectId=${projectId}&status=${column.id}`)
+                }
               >
                 <Plus className="h-3 w-3" />
               </Button>

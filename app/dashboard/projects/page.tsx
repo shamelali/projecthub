@@ -1,19 +1,20 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { projectAccessWhere } from "@/lib/permissions";
-import Link from "next/link";
-import { FolderGit2, Plus, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import Link from 'next/link';
+import { FolderGit2, Plus, Search } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { projectAccessWhere } from '@/lib/permissions';
 
 export default async function ProjectsPage() {
   const session = await auth();
 
   const projects = await db.project.findMany({
-    where: session?.user?.id ? projectAccessWhere(session.user.id) : { id: "" },
-    orderBy: { lastActivityAt: "desc" },
+    where: session?.user?.id ? projectAccessWhere(session.user.id) : { id: '' },
+    orderBy: { lastActivityAt: 'desc' },
     include: { _count: { select: { tasks: true } } },
   });
 
@@ -34,11 +35,7 @@ export default async function ProjectsPage() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search projects..."
-          className="pl-10"
-        />
+        <Input type="text" placeholder="Search projects..." className="pl-10" />
       </div>
 
       {projects.length === 0 ? (
@@ -74,14 +71,14 @@ export default async function ProjectsPage() {
                     <Badge variant="secondary">{project.status}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {project.description || "No description"}
+                    {project.description || 'No description'}
                   </p>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span>{project._count.tasks} tasks</span>
                     {project.techStack.length > 0 && (
-                      <span>{project.techStack.slice(0, 3).join(", ")}</span>
+                      <span>{project.techStack.slice(0, 3).join(', ')}</span>
                     )}
                   </div>
                 </CardContent>

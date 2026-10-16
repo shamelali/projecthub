@@ -1,45 +1,42 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { createTask } from "@/lib/actions/tasks";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { createTask } from '@/lib/actions/tasks';
 
 interface NewTaskFormProps {
   projectId: string;
   status?: string;
 }
 
-export function NewTaskForm({ projectId, status = "TODO" }: NewTaskFormProps) {
+export function NewTaskForm({ projectId, status = 'TODO' }: NewTaskFormProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState("MEDIUM");
+  const [title, setTitle] = useState('');
+  const [priority, setPriority] = useState('MEDIUM');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
 
     const formData = new FormData();
-    formData.append("title", title);
-    formData.append("projectId", projectId);
-    formData.append("priority", priority);
-    formData.append("status", status);
+    formData.append('title', title);
+    formData.append('projectId', projectId);
+    formData.append('priority', priority);
+    formData.append('status', status);
 
     await createTask(formData);
-    setTitle("");
+    setTitle('');
     setIsOpen(false);
     router.refresh();
   };
 
   if (!isOpen) {
     return (
-      <Button
-        variant="outline"
-        className="w-full border-dashed"
-        onClick={() => setIsOpen(true)}
-      >
+      <Button variant="outline" className="w-full border-dashed" onClick={() => setIsOpen(true)}>
         + Add Task
       </Button>
     );

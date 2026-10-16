@@ -1,16 +1,15 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { projectAccessWhere } from "@/lib/permissions";
-import Link from "next/link";
-import { FolderGit2, GitBranch, CheckCircle2, Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import Link from 'next/link';
+import { CheckCircle2, Clock, FolderGit2, GitBranch } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { projectAccessWhere } from '@/lib/permissions';
 
 export default async function DashboardPage() {
   const session = await auth();
-  const projectWhere = session?.user?.id
-    ? projectAccessWhere(session.user.id)
-    : { id: "" };
+  const projectWhere = session?.user?.id ? projectAccessWhere(session.user.id) : { id: '' };
 
   const [projectCount, taskCount, recentProjects] = await Promise.all([
     db.project.count({ where: projectWhere }),
@@ -18,36 +17,33 @@ export default async function DashboardPage() {
       where: {
         AND: [
           {
-            OR: [
-              { assigneeId: session?.user?.id },
-              { reporterId: session?.user?.id },
-            ],
+            OR: [{ assigneeId: session?.user?.id }, { reporterId: session?.user?.id }],
           },
           { project: projectWhere },
         ],
-        status: { not: "DONE" },
+        status: { not: 'DONE' },
       },
     }),
     db.project.findMany({
       where: projectWhere,
-      orderBy: { lastActivityAt: "desc" },
+      orderBy: { lastActivityAt: 'desc' },
       take: 5,
       include: { _count: { select: { tasks: true } } },
     }),
   ]);
 
   const stats = [
-    { label: "Total Projects", value: projectCount, icon: FolderGit2 },
-    { label: "Active Tasks", value: taskCount, icon: CheckCircle2 },
-    { label: "Git Repos", value: projectCount, icon: GitBranch },
-    { label: "Hours This Week", value: 0, icon: Clock },
+    { label: 'Total Projects', value: projectCount, icon: FolderGit2 },
+    { label: 'Active Tasks', value: taskCount, icon: CheckCircle2 },
+    { label: 'Git Repos', value: projectCount, icon: GitBranch },
+    { label: 'Hours This Week', value: 0, icon: Clock },
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back, {session?.user?.name || "there"}</p>
+        <p className="text-muted-foreground">Welcome back, {session?.user?.name || 'there'}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -99,7 +95,7 @@ export default async function DashboardPage() {
                       <Badge variant="secondary">{project.status}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                      {project.description || "No description"}
+                      {project.description || 'No description'}
                     </p>
                   </CardHeader>
                   <CardContent>

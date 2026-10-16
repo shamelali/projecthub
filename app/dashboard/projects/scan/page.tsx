@@ -1,12 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Search, FolderGit2, GitBranch, Plus, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Check, FolderGit2, GitBranch, Plus, Search } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface ScannedProject {
   name: string;
@@ -24,7 +25,7 @@ interface ScannedProject {
 
 export default function ScanProjectsPage() {
   const router = useRouter();
-  const [path, setPath] = useState("/home/user/projects");
+  const [path, setPath] = useState('/home/user/projects');
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState<ScannedProject[]>([]);
   const [scanned, setScanned] = useState(false);
@@ -34,16 +35,16 @@ export default function ScanProjectsPage() {
   const handleScan = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path }),
       });
       const data = await res.json();
       setProjects(data.projects || []);
       setScanned(true);
     } catch (err) {
-      console.error("Scan failed:", err);
+      console.error('Scan failed:', err);
     } finally {
       setLoading(false);
     }
@@ -52,20 +53,20 @@ export default function ScanProjectsPage() {
   const handleAddProject = async (project: ScannedProject) => {
     setAdding(project.path);
     try {
-      const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: project.name,
           path: project.path,
-          repositoryUrl: project.remotes?.[0] || "",
+          repositoryUrl: project.remotes?.[0] || '',
         }),
       });
       if (res.ok) {
         setAdded((prev) => new Set(prev).add(project.path));
       }
     } catch (err) {
-      console.error("Failed to add project:", err);
+      console.error('Failed to add project:', err);
     } finally {
       setAdding(null);
     }
@@ -75,9 +76,7 @@ export default function ScanProjectsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Scan for Projects</h1>
-        <p className="text-muted-foreground">
-          Scan a local directory to discover Git repositories
-        </p>
+        <p className="text-muted-foreground">Scan a local directory to discover Git repositories</p>
       </div>
 
       <Card>
@@ -94,7 +93,7 @@ export default function ScanProjectsPage() {
             />
             <Button onClick={handleScan} disabled={loading}>
               <Search />
-              {loading ? "Scanning..." : "Scan"}
+              {loading ? 'Scanning...' : 'Scan'}
             </Button>
           </div>
         </CardContent>
@@ -103,13 +102,11 @@ export default function ScanProjectsPage() {
       {scanned && (
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">
-            Found {projects.length} project{projects.length !== 1 ? "s" : ""}
+            Found {projects.length} project{projects.length !== 1 ? 's' : ''}
           </h2>
           {projects.length === 0 ? (
             <div className="rounded-lg border border-dashed p-8 text-center">
-              <p className="text-muted-foreground">
-                No Git repositories found in {path}
-              </p>
+              <p className="text-muted-foreground">No Git repositories found in {path}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -149,7 +146,7 @@ export default function ScanProjectsPage() {
                           disabled={adding === project.path}
                         >
                           <Plus />
-                          {adding === project.path ? "Adding..." : "Add"}
+                          {adding === project.path ? 'Adding...' : 'Add'}
                         </Button>
                       )}
                     </div>

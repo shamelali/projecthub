@@ -1,8 +1,9 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { User, Bell, Palette, Shield } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Bell, Palette, Shield, User } from 'lucide-react';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -34,7 +35,7 @@ export default async function SettingsPage() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Name</span>
-              <span className="text-sm font-medium">{session?.user?.name || "Not set"}</span>
+              <span className="text-sm font-medium">{session?.user?.name || 'Not set'}</span>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -65,14 +66,14 @@ export default async function SettingsPage() {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Theme</span>
               <span className="text-sm font-medium capitalize">
-                {preferences?.theme?.toLowerCase() || "System"}
+                {preferences?.theme?.toLowerCase() || 'System'}
               </span>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Default View</span>
               <span className="text-sm font-medium capitalize">
-                {preferences?.defaultView?.toLowerCase() || "Grid"}
+                {preferences?.defaultView?.toLowerCase() || 'Grid'}
               </span>
             </div>
           </CardContent>

@@ -1,18 +1,13 @@
-"use client";
+'use client';
 
-import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { Code2, GitBranch, Terminal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { useState } from 'react';
+import { Code2, GitBranch, Terminal } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
 interface LoginFormProps {
   providers: {
@@ -24,8 +19,8 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ providers, initialError }: LoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(initialError);
   const hasOAuthProvider = providers.github || providers.gitlab;
@@ -36,22 +31,22 @@ export function LoginForm({ providers, initialError }: LoginFormProps) {
     setError(undefined);
 
     try {
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
-        callbackUrl: "/dashboard",
+        callbackUrl: '/dashboard',
       });
 
       if (result?.error) {
-        setError("Invalid demo email or password.");
+        setError('Invalid demo email or password.');
         setLoading(false);
         return;
       }
 
-      window.location.assign(result?.url ?? "/dashboard");
+      window.location.assign(result?.url ?? '/dashboard');
     } catch {
-      setError("Unable to sign in. Please try again.");
+      setError('Unable to sign in. Please try again.');
       setLoading(false);
     }
   };
@@ -60,9 +55,7 @@ export function LoginForm({ providers, initialError }: LoginFormProps) {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold tracking-tight">
-            ProjectHub
-          </CardTitle>
+          <CardTitle className="text-3xl font-bold tracking-tight">ProjectHub</CardTitle>
           <CardDescription>Sign in to manage your projects</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -84,9 +77,7 @@ export function LoginForm({ providers, initialError }: LoginFormProps) {
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() =>
-                        void signIn("github", { callbackUrl: "/dashboard" })
-                      }
+                      onClick={() => void signIn('github', { callbackUrl: '/dashboard' })}
                     >
                       <Code2 />
                       Continue with GitHub
@@ -96,9 +87,7 @@ export function LoginForm({ providers, initialError }: LoginFormProps) {
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() =>
-                        void signIn("gitlab", { callbackUrl: "/dashboard" })
-                      }
+                      onClick={() => void signIn('gitlab', { callbackUrl: '/dashboard' })}
                     >
                       <GitBranch />
                       Continue with GitLab
@@ -113,9 +102,7 @@ export function LoginForm({ providers, initialError }: LoginFormProps) {
                     <Separator />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or
-                    </span>
+                    <span className="bg-background px-2 text-muted-foreground">Or</span>
                   </div>
                 </div>
               )}
@@ -151,7 +138,7 @@ export function LoginForm({ providers, initialError }: LoginFormProps) {
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     <Terminal />
-                    {loading ? "Signing in..." : "Continue with Demo Account"}
+                    {loading ? 'Signing in...' : 'Continue with Demo Account'}
                   </Button>
                 </form>
               )}

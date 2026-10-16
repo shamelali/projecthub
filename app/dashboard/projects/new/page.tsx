@@ -1,43 +1,44 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, FolderGit2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, FolderGit2 } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [path, setPath] = useState("");
-  const [repositoryUrl, setRepositoryUrl] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [path, setPath] = useState('');
+  const [repositoryUrl, setRepositoryUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
-      const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, description, path, repositoryUrl }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create project");
+        throw new Error(data.error || 'Failed to create project');
       }
 
       const project = await res.json();
       router.push(`/dashboard/projects/${project.slug}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -126,15 +127,13 @@ export default function NewProjectPage() {
                 onChange={(e) => setRepositoryUrl(e.target.value)}
                 placeholder="https://github.com/username/repo"
               />
-              <p className="text-xs text-muted-foreground">
-                GitHub or GitLab URL (optional)
-              </p>
+              <p className="text-xs text-muted-foreground">GitHub or GitLab URL (optional)</p>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
               <Button type="submit" disabled={loading}>
                 <FolderGit2 />
-                {loading ? "Creating..." : "Create Project"}
+                {loading ? 'Creating...' : 'Create Project'}
               </Button>
               <Link href="/dashboard/projects">
                 <Button variant="ghost">Cancel</Button>

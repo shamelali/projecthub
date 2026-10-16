@@ -1,14 +1,15 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import GitHub from "next-auth/providers/github";
-import GitLab from "next-auth/providers/gitlab";
-import type { UserRole } from "@prisma/client";
-import { db } from "@/lib/db";
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import type { UserRole } from '@prisma/client';
+import NextAuth from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import GitHub from 'next-auth/providers/github';
+import GitLab from 'next-auth/providers/gitlab';
+
+import { db } from '@/lib/db';
 
 const isConfigured = (value: string | undefined) => Boolean(value?.trim());
 const isDemoCredentialsEnabled =
-  (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") &&
+  (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') &&
   isConfigured(process.env.DEMO_EMAIL) &&
   isConfigured(process.env.DEMO_PASSWORD);
 
@@ -29,18 +30,18 @@ const providers = [
     : null,
   isDemoCredentialsEnabled
     ? Credentials({
-        name: "Demo Account",
+        name: 'Demo Account',
         credentials: {
-          email: { label: "Email", type: "email" },
-          password: { label: "Password", type: "password" },
+          email: { label: 'Email', type: 'email' },
+          password: { label: 'Password', type: 'password' },
         },
         async authorize(credentials) {
           const email = credentials?.email;
           const password = credentials?.password;
 
           if (
-            typeof email !== "string" ||
-            typeof password !== "string" ||
+            typeof email !== 'string' ||
+            typeof password !== 'string' ||
             email !== process.env.DEMO_EMAIL ||
             password !== process.env.DEMO_PASSWORD
           ) {
@@ -50,7 +51,7 @@ const providers = [
           const user = await db.user.upsert({
             where: { email },
             update: {},
-            create: { email, name: email.split("@")[0] },
+            create: { email, name: email.split('@')[0] },
           });
 
           return {
@@ -72,9 +73,9 @@ export const configuredProviders = {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
+  session: { strategy: 'jwt' },
   pages: {
-    signIn: "/login",
+    signIn: '/login',
   },
   providers,
   callbacks: {
@@ -84,7 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
       }
 
-      const tokenId = typeof token.id === "string" ? token.id : undefined;
+      const tokenId = typeof token.id === 'string' ? token.id : undefined;
 
       if (tokenId && !token.role) {
         const currentUser = await db.user.findUnique({
@@ -97,10 +98,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (session.user && typeof token.id === "string") {
+      if (session.user && typeof token.id === 'string') {
         session.user.id = token.id;
-        session.user.role =
-          typeof token.role === "string" ? (token.role as UserRole) : "PERSONAL";
+        session.user.role = typeof token.role === 'string' ? (token.role as UserRole) : 'PERSONAL';
       }
       return session;
     },

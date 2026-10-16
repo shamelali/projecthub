@@ -1,6 +1,6 @@
-import { simpleGit } from "simple-git";
-import { readdirSync } from "fs";
-import { join } from "path";
+import { readdirSync } from 'fs';
+import { join } from 'path';
+import { simpleGit } from 'simple-git';
 
 export interface ScannedProject {
   name: string;
@@ -16,9 +16,7 @@ export interface ScannedProject {
   remotes?: string[];
 }
 
-export async function scanDirectoryForProjects(
-  basePath: string
-): Promise<ScannedProject[]> {
+export async function scanDirectoryForProjects(basePath: string): Promise<ScannedProject[]> {
   const results: ScannedProject[] = [];
 
   try {
@@ -26,7 +24,7 @@ export async function scanDirectoryForProjects(
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      if (entry.name.startsWith(".")) continue;
+      if (entry.name.startsWith('.')) continue;
 
       const fullPath = join(basePath, entry.name);
       const isGitRepo = await isGitRepository(fullPath);
@@ -51,7 +49,7 @@ export async function scanDirectoryForProjects(
 async function isGitRepository(path: string): Promise<boolean> {
   try {
     const git = simpleGit(path);
-    await git.revparse(["--git-dir"]);
+    await git.revparse(['--git-dir']);
     return true;
   } catch {
     return false;
@@ -60,7 +58,7 @@ async function isGitRepository(path: string): Promise<boolean> {
 
 async function getGitInfo(
   path: string
-): Promise<{ branch?: string; lastCommit?: ScannedProject["lastCommit"]; remotes?: string[] }> {
+): Promise<{ branch?: string; lastCommit?: ScannedProject['lastCommit']; remotes?: string[] }> {
   try {
     const git = simpleGit(path);
 
@@ -80,7 +78,9 @@ async function getGitInfo(
             date: log.latest.date,
           }
         : undefined,
-      remotes: remotes.map((r) => (r as unknown as Record<string, unknown>)?.refs as string).filter(Boolean) as string[],
+      remotes: remotes
+        .map((r) => (r as unknown as Record<string, unknown>)?.refs as string)
+        .filter(Boolean) as string[],
     };
   } catch {
     return {};

@@ -1,20 +1,18 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { CheckCircle2, Clock, AlertCircle, Circle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { AlertCircle, CheckCircle2, Circle, Clock } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
 
 export default async function TasksPage() {
   const session = await auth();
 
   const tasks = await db.task.findMany({
     where: {
-      OR: [
-        { assigneeId: session?.user?.id },
-        { reporterId: session?.user?.id },
-      ],
+      OR: [{ assigneeId: session?.user?.id }, { reporterId: session?.user?.id }],
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     include: {
       project: { select: { name: true, slug: true } },
       assignee: { select: { name: true, email: true } },
@@ -23,11 +21,11 @@ export default async function TasksPage() {
 
   const statusIcon = (status: string) => {
     switch (status) {
-      case "DONE":
+      case 'DONE':
         return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case "IN_PROGRESS":
+      case 'IN_PROGRESS':
         return <Clock className="h-4 w-4 text-blue-500" />;
-      case "BLOCKED":
+      case 'BLOCKED':
         return <AlertCircle className="h-4 w-4 text-red-500" />;
       default:
         return <Circle className="h-4 w-4 text-gray-400" />;
@@ -36,16 +34,16 @@ export default async function TasksPage() {
 
   const statusVariant = (status: string) => {
     switch (status) {
-      case "DONE":
-        return "default";
-      case "IN_PROGRESS":
-        return "secondary";
-      case "IN_REVIEW":
-        return "outline";
-      case "BLOCKED":
-        return "destructive";
+      case 'DONE':
+        return 'default';
+      case 'IN_PROGRESS':
+        return 'secondary';
+      case 'IN_REVIEW':
+        return 'outline';
+      case 'BLOCKED':
+        return 'destructive';
       default:
-        return "outline";
+        return 'outline';
     }
   };
 
@@ -74,7 +72,7 @@ export default async function TasksPage() {
                   <div>
                     <p className="font-medium">{task.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {task.project.name} · {task.assignee?.name || "Unassigned"}
+                      {task.project.name} · {task.assignee?.name || 'Unassigned'}
                     </p>
                   </div>
                 </div>

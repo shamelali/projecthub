@@ -1,38 +1,28 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { projectAccessWhere } from "@/lib/permissions";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  FolderGit2,
-  GitBranch,
-  CheckCircle2,
-  Clock,
-  ExternalLink,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { KanbanBoard } from "@/components/tasks/kanban-board";
-import { NewTaskForm } from "@/components/tasks/new-task-form";
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { ArrowLeft, CheckCircle2, Clock, ExternalLink, FolderGit2, GitBranch } from 'lucide-react';
 
-export default async function ProjectDetailPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+import { KanbanBoard } from '@/components/tasks/kanban-board';
+import { NewTaskForm } from '@/components/tasks/new-task-form';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { projectAccessWhere } from '@/lib/permissions';
+
+export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const session = await auth();
 
   const project = await db.project.findFirst({
     where: {
       slug,
-      ...(session?.user?.id ? projectAccessWhere(session.user.id) : { id: "" }),
+      ...(session?.user?.id ? projectAccessWhere(session.user.id) : { id: '' }),
     },
     include: {
       tasks: {
-        orderBy: { position: "asc" },
+        orderBy: { position: 'asc' },
         include: { assignee: { select: { name: true, email: true } } },
       },
       _count: { select: { tasks: true } },
@@ -41,8 +31,8 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
-  const openTasks = project.tasks.filter((t) => t.status !== "DONE").length;
-  const doneTasks = project.tasks.filter((t) => t.status === "DONE").length;
+  const openTasks = project.tasks.filter((t) => t.status !== 'DONE').length;
+  const doneTasks = project.tasks.filter((t) => t.status === 'DONE').length;
 
   return (
     <div className="space-y-6">
@@ -63,7 +53,7 @@ export default async function ProjectDetailPage({
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-            <p className="text-muted-foreground">{project.description || "No description"}</p>
+            <p className="text-muted-foreground">{project.description || 'No description'}</p>
           </div>
         </div>
         <Badge variant="secondary">{project.status}</Badge>
