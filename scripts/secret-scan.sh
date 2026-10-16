@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Guard against committing credentials that should never be in the repo.
 #
-# `projecthub-demo-2026` was committed in bd23e2a as a seed fallback and became
-# a live production credential. This catches that class of mistake before code
-# leaves the machine. Patterns are deliberately narrow to avoid false positives
-# on the placeholder values in .env.example.
+# A demo password was committed in bd23e2a as a seed fallback and became a live
+# production credential. This catches that class of mistake before code leaves
+# the machine. Patterns are deliberately narrow to avoid false positives on the
+# empty placeholder values in .env.example.
 
 set -euo pipefail
 
