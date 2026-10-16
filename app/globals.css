@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  /* Dark is the default theme (see app/layout.tsx). Let the browser render
+     native widgets — scrollbars, form controls, date pickers — in dark too. */
+  html.dark {
+    color-scheme: dark;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
