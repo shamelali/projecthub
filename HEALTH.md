@@ -12,19 +12,34 @@ _Updated 2026-10-16. Verified against actual command output, not aspirational._
 - pnpm: 12.8.1
 - Node: 24.22.0 (local), 20 (CI)
 
-## Blockers — all external billing, none are code
+## Deployment ✅
+
+- **Live:** https://projecthub.vercel.app
+- Scope `duta-integra` (Hobby, $0). Project `projecthub`, `prj_HGYMvxl3AWm43FqamAA3D88KK3jg`
+- Env vars set for Production + Preview: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`,
+  `NEXTAUTH_SECRET`, `AUTH_TRUST_HOST=true`, `NEXTAUTH_URL`
+- `postinstall: prisma generate` is required — Vercel caches dependencies and
+  otherwise fails with `PrismaClientInitializationError` on `/api/projects`
+
+## Blockers
 
 - **GitHub Actions disabled account-wide**: "The job was not started because your
-  account is locked due to a billing issue."
-- **Vercel account suspended**: `vercel link` fails with "Your account has been
-  suspended. To reactivate your subscription, add a valid payment method."
-  This blocks creating the project and deploying.
+  account is locked due to a billing issue." Only the Pro Vercel scope
+  (`shamelalis-projects`) is suspended; Hobby works fine.
 - **No production login path**: `lib/auth.ts` enables credentials only when
   `NODE_ENV` is development/test, and `GITHUB_ID`/`GITHUB_SECRET` are empty. In
   production the login page renders "No sign-in providers are configured."
   Needs a real GitHub/GitLab OAuth app before anyone can sign in.
+- **Unverified:** middleware does not emit a redirect for unauthenticated
+  `/dashboard` (returns 200, empty body). Pages still fail closed via
+  `session?.user?.id ? projectAccessWhere(id) : { id: '' }`, so no data leaks.
+  Confirm redirect behaviour in a browser.
 
-Both billing issues need the account owner and cannot be fixed from the repo.
+## Security Note
+
+Vercel's CLI echoed the Neon `DATABASE_URL` (including the password) into the
+terminal while rejecting a malformed `env add`. Rotate the Neon role password if
+that session log is shared or stored anywhere.
 
 ## Config Status ✅
 
