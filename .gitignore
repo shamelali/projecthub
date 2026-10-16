@@ -44,3 +44,4 @@ yarn-error.log*
 # TypeScript build info
 tsconfig.tsbuildinfo
 .neon
+.env*
