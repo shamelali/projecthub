@@ -26,6 +26,8 @@ run "typecheck" pnpm typecheck
 run "lint" pnpm lint
 run "test" pnpm test
 
+bash "$(dirname "$0")/secret-scan.sh" || fail=1
+
 echo ""
 if [ "$fail" -ne 0 ]; then
   echo "Pre-push aborted: failing checks above."
