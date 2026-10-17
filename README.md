@@ -8,11 +8,12 @@ A full-stack project management platform for developers, teams, and clients. Pro
 - **Language:** TypeScript (strict mode)
 - **Styling:** Tailwind CSS + shadcn/ui
 - **Database:** Neon PostgreSQL + Prisma ORM
-- **Auth:** NextAuth v5 (GitHub, GitLab, Credentials)
-- **Real-time:** Supabase Realtime
-- **Git:** simple-git (local), GitHub/GitLab REST API (remote)
+- **Auth:** Better Auth (email + password, GitHub & GitLab OAuth, email verification)
+- **Git:** GitHub/GitLab REST API (repository sync, commit/branch activity)
+- **Email:** Brevo HTTP API (verification & password reset)
+- **Monitoring:** Sentry (errors, source maps, cron & release health)
 - **Package Manager:** pnpm
-- **Deployment:** Vercel (primary), Docker (self-host)
+- **Deployment:** Cloudflare Workers (primary, via OpenNext), Vercel (mirror)
 
 ## Getting Started
 
@@ -21,7 +22,7 @@ A full-stack project management platform for developers, teams, and clients. Pro
 - Node.js >= 20.0.0
 - pnpm (via corepack: `corepack enable pnpm`)
 - Neon PostgreSQL database
-- Supabase project (for Realtime)
+- Brevo account (for email sending)
 - GitHub/GitLab OAuth apps (for authentication)
 
 ### Installation
@@ -50,23 +51,27 @@ pnpm dev
 
 ### Environment Variables
 
-| Variable                        | Description                                                   | Required |
-| ------------------------------- | ------------------------------------------------------------- | -------- |
-| `DATABASE_URL`                  | Neon PostgreSQL connection string                             | Yes      |
-| `NEXTAUTH_SECRET`               | Secret for NextAuth (generate with `openssl rand -base64 32`) | Yes      |
-| `NEXTAUTH_URL`                  | Base URL of your application                                  | Yes      |
-| `GITHUB_ID`                     | GitHub OAuth client ID                                        | No*      |
-| `GITHUB_SECRET`                 | GitHub OAuth client secret                                    | No*      |
-| `GITLAB_ID`                     | GitLab OAuth client ID                                        | No*      |
-| `GITLAB_SECRET`                 | GitLab OAuth client secret                                    | No*      |
-| `DEMO_EMAIL`                    | Development/test-only credentials login email                 | No       |
-| `DEMO_PASSWORD`                 | Development/test-only credentials login password              | No       |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                                          | Yes      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key                                        | Yes      |
-| `VERCEL_TOKEN`                  | Vercel API token for deployment tracking                      | No       |
-| `NEXT_PUBLIC_APP_URL`           | Public app URL (defaults to NEXTAUTH_URL)                     | No       |
+| Variable                                | Description                                                | Required |
+| --------------------------------------- | ---------------------------------------------------------- | -------- |
+| `DATABASE_URL`                          | Neon **pooled** connection string (runtime queries)        | Yes      |
+| `DATABASE_URL_UNPOOLED`                 | Neon direct endpoint (Prisma `directUrl`, migrations)      | Yes      |
+| `BETTER_AUTH_SECRET`                    | Auth secret (generate with `openssl rand -base64 32`)      | Yes      |
+| `BETTER_AUTH_URL`                       | Base URL of this deployment (auth callbacks & email links) | Yes      |
+| `BETTER_AUTH_TRUSTED_ORIGINS`           | Comma-separated extra origins allowed for auth redirects   | No       |
+| `GITHUB_ID` / `GITHUB_SECRET`           | GitHub OAuth app credentials                               | No*      |
+| `GITLAB_ID` / `GITLAB_SECRET`           | GitLab OAuth app credentials                               | No*      |
+| `DEMO_MODE` / `DEMO_PASSWORD`           | Enable the demo account; leave unset in production         | No       |
+| `DEMO_EMAIL`                            | Demo account address (defaults to `demo@projecthub.dev`)   | No       |
+| `BREVO_API_KEY`                         | Brevo API key — email sending (required in production)     | Prod     |
+| `EMAIL_FROM` / `EMAIL_FROM_NAME`        | Verified Brevo sender for outgoing mail                    | Prod     |
+| `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSNs (server / browser)                             | Prod     |
+| `SENTRY_AUTH_TOKEN`                     | Sentry token — uploads source maps at build time           | Prod     |
+| `SENTRY_ORG` / `SENTRY_PROJECT`         | Sentry slugs used when uploading source maps               | Prod     |
+| `CRON_SECRET`                           | Bearer secret for the daily `/api/cron/sync-git` job       | Prod     |
 
-*OAuth buttons are available only when both credentials for that provider are configured. Credentials login is available only outside production when both `DEMO_EMAIL` and `DEMO_PASSWORD` are configured.
+*OAuth buttons appear only when both credentials for a provider are set. The demo account exists and can sign in only when `DEMO_MODE="true"`.
+
+Full list with comments: `.env.example`. On Cloudflare Workers, non-secret vars live in `wrangler.jsonc` and secrets in `wrangler secret put`.
 
 ## Project Structure
 
@@ -92,11 +97,11 @@ projecthub/
 │   ├── settings/          # Settings components
 │   └── realtime/          # Real-time components
 ├── lib/                   # Shared utilities
-│   ├── auth/              # NextAuth config, permissions
-│   ├── db/                # Prisma client, extensions
-│   ├── git/               # Git scanner, operations
-│   ├── realtime/          # Supabase Realtime client
-│   ├── mcp/               # MCP client, OpenCode
+│   ├── auth.ts / auth-server.ts  # Better Auth setup & accessors
+│   ├── db.ts              # Prisma client (Hyperdrive-aware on Workers)
+│   ├── github.ts          # GitHub sync (repos, branches, commits)
+│   ├── theme.ts           # Theme resolution for the root layout
+│   ├── suggest-next-step.ts      # Task suggestion engine
 │   ├── actions/           # Server Actions
 │   ├── validators/        # Zod schemas
 │   ├── utils/             # Utility functions
@@ -155,7 +160,7 @@ docker compose down   # Stop self-hosted stack
 
 ### MVP v0.2 (Planned)
 
-- [ ] Real-time sync (Supabase Realtime)
+- [ ] GitHub webhooks for instant activity updates (daily cron covers polling today)
 - [ ] Deployment tracking (Vercel, Netlify, Cloudflare)
 - [ ] OpenCode session tracking
 - [ ] MCP server management

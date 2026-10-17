@@ -15,6 +15,18 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
+  // Move the worker next to the (us-east-2) Neon database — cuts the per-request
+  // TCP+TLS handshake latency that dominated cold-page times.
+  "placement": { "mode": "smart" },
+  // Hyperdrive pools Postgres connections at the edge; lib/db.ts reads
+  // env.HYPERDRIVE.connectionString on Workers. Pooler URL — Hyperdrive and
+  // PgBouncer both pool, and Neon's docs recommend the pooled endpoint here.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "5054885dfad740c0aff3ae42b6d1e91f",
+    },
+  ],
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",

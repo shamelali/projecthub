@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
@@ -11,9 +12,28 @@ function isWorkers(): boolean {
   return typeof navigator !== 'undefined' && navigator.userAgent.includes('Cloudflare-Workers');
 }
 
+/**
+ * Hyperdrive binding, when deployed on Workers with one configured. Its
+ * connection string routes through Cloudflare's pooler, so each request no
+ * longer pays a fresh TCP+TLS handshake to Neon. Falls back to DATABASE_URL
+ * (local dev without a binding, Vercel, or a missing/failed context).
+ */
+function workersConnectionString(): string | null {
+  try {
+    const env = getCloudflareContext().env as {
+      HYPERDRIVE?: { connectionString?: string };
+    };
+    return env.HYPERDRIVE?.connectionString ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL ?? '';
-  // maxUses: 1 — never reuse a socket across requests on Workers.
+  const connectionString =
+    (isWorkers() ? workersConnectionString() : null) ?? process.env.DATABASE_URL ?? '';
+  // maxUses: 1 — never reuse a socket across requests on Workers (Hyperdrive
+  // handles the pooling on its side).
   const pool = new Pool(isWorkers() ? { connectionString, maxUses: 1 } : { connectionString });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
