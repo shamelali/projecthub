@@ -25,8 +25,11 @@
   // Non-secret runtime env vars. Secrets (DATABASE_URL, BETTER_AUTH_SECRET,
   // BREVO_API_KEY, ...) are set with `wrangler secret put` instead.
   "vars": {
-    "BETTER_AUTH_URL": "https://projecthub.duta-integra.workers.dev",
-    "BETTER_AUTH_TRUSTED_ORIGINS": "https://projecthub.duta-integra.workers.dev,https://projecthub-ashy-sigma.vercel.app",
+    // NOTE: must match the workers.dev subdomain of the account wrangler
+    // deploys to — currently Shamelali@gmail.com's Account (subdomain
+    // `shamelali`). Update if you switch accounts.
+    "BETTER_AUTH_URL": "https://projecthub.shamelali.workers.dev",
+    "BETTER_AUTH_TRUSTED_ORIGINS": "https://projecthub.shamelali.workers.dev,https://projecthub-ashy-sigma.vercel.app",
     "EMAIL_FROM": "admin@dutaintegra.my",
     "EMAIL_FROM_NAME": "ProjectHub"
   },
