@@ -94,3 +94,96 @@ export async function updateTask(taskId: string, formData: FormData) {
   revalidatePath('/dashboard/tasks');
   revalidatePath('/dashboard/projects/[slug]');
 }
+
+export async function populateTasksFromProject(projectId: string) {
+  const session = await auth();
+  if (!session?.user?.id) redirect('/login');
+
+  await requireProjectAccess(session.user.id, projectId);
+
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    include: {
+      gitCommits: {
+        where: { isMerge: false },
+        orderBy: { authorDate: 'desc' },
+        take: 20,
+      },
+      branches: { orderBy: { name: 'asc' } },
+      tasks: { select: { tags: true, title: true } },
+    },
+  });
+
+  if (!project) return { created: 0, error: 'Project not found' };
+
+  // Tags recorded on auto-created tasks so re-populating is idempotent.
+  const existingCommitShas = new Set(
+    project.tasks.flatMap((task) =>
+      task.tags
+        .filter((tag) => tag.startsWith('source:commit:'))
+        .map((tag) => tag.slice('source:commit:'.length))
+    )
+  );
+  const existingBranchNames = new Set(
+    project.tasks.flatMap((task) =>
+      task.tags
+        .filter((tag) => tag.startsWith('source:branch:'))
+        .map((tag) => tag.slice('source:branch:'.length))
+    )
+  );
+  const existingTitles = new Set(project.tasks.map((task) => task.title));
+
+  let created = 0;
+
+  // One task per recent non-merge commit.
+  for (const commit of project.gitCommits) {
+    if (existingCommitShas.has(commit.sha)) continue;
+    const title = commit.message.split('\n')[0].trim() || `Commit ${commit.shortSha}`;
+    if (existingTitles.has(title)) continue;
+
+    await db.task.create({
+      data: {
+        title,
+        description:
+          `Auto-populated from commit ${commit.shortSha} by ${commit.authorName}.\n\n` +
+          commit.message,
+        projectId,
+        reporterId: session.user.id,
+        status: 'TODO',
+        priority: 'MEDIUM',
+        tags: [`source:commit:${commit.sha}`, `author:${commit.authorName}`],
+      },
+    });
+    existingCommitShas.add(commit.sha);
+    existingTitles.add(title);
+    created += 1;
+  }
+
+  // One task per non-default branch.
+  for (const branch of project.branches) {
+    if (branch.isDefault) continue;
+    if (existingBranchNames.has(branch.name)) continue;
+    const title = `Branch: ${branch.name}`;
+    if (existingTitles.has(title)) continue;
+
+    await db.task.create({
+      data: {
+        title,
+        description: `Auto-populated from branch ${branch.name}.`,
+        projectId,
+        reporterId: session.user.id,
+        status: 'BACKLOG',
+        priority: 'LOW',
+        tags: [`source:branch:${branch.name}`],
+      },
+    });
+    existingBranchNames.add(branch.name);
+    existingTitles.add(title);
+    created += 1;
+  }
+
+  revalidatePath('/dashboard/tasks');
+  revalidatePath(`/dashboard/projects/${project.slug}`);
+
+  return { created };
+}

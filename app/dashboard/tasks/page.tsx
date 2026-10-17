@@ -1,16 +1,20 @@
 import { AlertCircle, CheckCircle2, Circle, Clock } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { projectAccessWhere } from '@/lib/permissions';
+
+import { AutoPopulateProjects } from './auto-populate';
 
 export default async function TasksPage() {
   const session = await auth();
+  const userId = session?.user?.id;
 
   const tasks = await db.task.findMany({
     where: {
-      OR: [{ assigneeId: session?.user?.id }, { reporterId: session?.user?.id }],
+      OR: [{ assigneeId: userId }, { reporterId: userId }],
     },
     orderBy: { createdAt: 'desc' },
     include: {
@@ -18,6 +22,26 @@ export default async function TasksPage() {
       assignee: { select: { name: true, email: true } },
     },
   });
+
+  // Projects that have been "populated" with git data (commits/branches) via
+  // GitHub sync or the local scanner, and that the current user can access.
+  const populatedProjects = userId
+    ? await db.project.findMany({
+        where: {
+          AND: [
+            projectAccessWhere(userId),
+            { OR: [{ gitCommits: { some: {} } }, { branches: { some: {} } }] },
+          ],
+        },
+        orderBy: { lastActivityAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          _count: { select: { gitCommits: true, branches: true, tasks: true } },
+        },
+      })
+    : [];
 
   const statusIcon = (status: string) => {
     switch (status) {
@@ -53,6 +77,21 @@ export default async function TasksPage() {
         <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
         <p className="text-muted-foreground">All your tasks across projects</p>
       </div>
+
+      {populatedProjects.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Auto-populate from projects</CardTitle>
+            <CardDescription>
+              Create tasks from recent commits and branches in your populated projects. Commits and
+              branches that already have a task are skipped, so it is safe to run more than once.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AutoPopulateProjects projects={populatedProjects} />
+          </CardContent>
+        </Card>
+      )}
 
       {tasks.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">
