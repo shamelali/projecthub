@@ -100,7 +100,6 @@ export const authServer = betterAuth({
           github: {
             clientId: process.env.GITHUB_ID as string,
             clientSecret: process.env.GITHUB_SECRET as string,
-            allowDangerousEmailAccountLinking: false,
             // Request the `repo` scope so we can list the user's repositories
             // after sign in (`read:user`/`user:email` are added by default).
             scope: ['repo'],
@@ -112,7 +111,6 @@ export const authServer = betterAuth({
           gitlab: {
             clientId: process.env.GITLAB_ID as string,
             clientSecret: process.env.GITLAB_SECRET as string,
-            allowDangerousEmailAccountLinking: false,
           },
         }
       : {}),
