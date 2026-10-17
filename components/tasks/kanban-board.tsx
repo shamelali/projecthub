@@ -17,6 +17,8 @@ interface KanbanBoardProps {
     priority: string;
     position: number;
     assignee?: { name: string | null } | null;
+    dueDate?: Date | string | null;
+    startedAt?: Date | string | null;
   }>;
 }
 

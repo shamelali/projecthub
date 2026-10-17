@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { deleteTask } from '@/lib/actions/tasks';
+import { formatDate, formatRelativeDate } from '@/lib/utils';
 
 interface TaskCardProps {
   task: {
@@ -15,6 +16,8 @@ interface TaskCardProps {
     status: string;
     priority: string;
     assignee?: { name: string | null } | null;
+    dueDate?: Date | string | null;
+    startedAt?: Date | string | null;
   };
 }
 
@@ -39,6 +42,9 @@ export function TaskCard({ task }: TaskCardProps) {
     }
   };
 
+  const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+  const overdue = Boolean(dueDate && dueDate < new Date() && task.status !== 'DONE');
+
   return (
     <Card className="group relative">
       <CardContent className="p-3">
@@ -61,6 +67,23 @@ export function TaskCard({ task }: TaskCardProps) {
             {task.priority}
           </Badge>
         </div>
+        {(dueDate || task.startedAt) && (
+          <div className="mt-1.5 flex items-center gap-2 text-[11px]">
+            {dueDate && (
+              <span
+                className={overdue ? 'font-medium text-red-500' : 'text-muted-foreground'}
+                title="Due date"
+              >
+                Due {formatDate(dueDate)}
+              </span>
+            )}
+            {!dueDate && task.startedAt && (
+              <span className="text-muted-foreground" title="Date the work happened">
+                {formatRelativeDate(task.startedAt)}
+              </span>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { projectAccessWhere } from '@/lib/permissions';
+import { formatDate, formatRelativeDate } from '@/lib/utils';
 
 import { AutoPopulateProjects } from './auto-populate';
 
@@ -116,6 +117,17 @@ export default async function TasksPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* Due date when set, otherwise when the task was created. */}
+                  <span
+                    className={`text-xs ${
+                      task.dueDate && task.dueDate < new Date() && task.status !== 'DONE'
+                        ? 'font-medium text-red-500'
+                        : 'text-muted-foreground'
+                    }`}
+                    title={task.dueDate ? 'Due date' : 'Created'}
+                  >
+                    {task.dueDate ? formatDate(task.dueDate) : formatRelativeDate(task.createdAt)}
+                  </span>
                   <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
                   <Badge variant="outline">{task.priority}</Badge>
                 </div>

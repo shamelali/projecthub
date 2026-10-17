@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { projectAccessWhere } from '@/lib/permissions';
+import { formatRelativeDate } from '@/lib/utils';
 
 export default async function ProjectsPage() {
   const session = await auth();
@@ -87,6 +88,11 @@ export default async function ProjectsPage() {
                       <span>{project.techStack.slice(0, 3).join(', ')}</span>
                     )}
                   </div>
+                  {/* lastActivityAt tracks repo pushes for GitHub imports and
+                      task movement for manual projects. */}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Last activity {formatRelativeDate(project.lastActivityAt)}
+                  </p>
                 </CardContent>
               </Card>
             </Link>

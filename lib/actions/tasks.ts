@@ -151,6 +151,9 @@ export async function populateTasksFromProject(projectId: string) {
         reporterId: session.user.id,
         status: 'TODO',
         priority: 'MEDIUM',
+        // The date the commit's work actually happened. completedAt is
+        // deliberately not set — that is owned by the DONE transition.
+        startedAt: commit.authorDate,
         tags: [`source:commit:${commit.sha}`, `author:${commit.authorName}`],
       },
     });
