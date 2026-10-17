@@ -41,18 +41,28 @@ export const authServer = betterAuth({
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
   },
-  socialProviders:
-    isConfigured(process.env.GITHUB_ID) && isConfigured(process.env.GITHUB_SECRET)
+  socialProviders: {
+    // Linking an OAuth identity to an existing account by matching email is a
+    // silent account-takeover vector. Keep it off for every provider.
+    ...(isConfigured(process.env.GITHUB_ID) && isConfigured(process.env.GITHUB_SECRET)
       ? {
           github: {
             clientId: process.env.GITHUB_ID as string,
             clientSecret: process.env.GITHUB_SECRET as string,
-            // Linking an OAuth identity to an existing account by matching email
-            // is a silent account-takeover vector. Keep it off.
             allowDangerousEmailAccountLinking: false,
           },
         }
-      : undefined,
+      : {}),
+    ...(isConfigured(process.env.GITLAB_ID) && isConfigured(process.env.GITLAB_SECRET)
+      ? {
+          gitlab: {
+            clientId: process.env.GITLAB_ID as string,
+            clientSecret: process.env.GITLAB_SECRET as string,
+            allowDangerousEmailAccountLinking: false,
+          },
+        }
+      : {}),
+  },
   trustedOrigins: (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? '')
     .split(',')
     .map((origin) => origin.trim())

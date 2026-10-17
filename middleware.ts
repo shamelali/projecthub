@@ -1,7 +1,5 @@
 import { getSessionCookie } from 'better-auth/cookies';
 
-import { authServer } from '@/lib/auth-server';
-
 /**
  * Fast-path redirect for unauthenticated visitors.
  *
@@ -9,9 +7,19 @@ import { authServer } from '@/lib/auth-server';
  * edge-safe. The authoritative check is the server-side `auth()` call in the
  * dashboard layout and in every route handler / server action, so a forged or
  * stale cookie cannot reach data.
+ *
+ * Note this file deliberately imports nothing from `@/lib/auth-server` or
+ * `@/lib/db`: those pull the Prisma adapter in, and Prisma cannot run on the
+ * edge runtime that middleware executes on.
  */
 export default function middleware(req: Request) {
   const { pathname } = new URL(req.url);
+
+  // The marketing landing page is public — anonymous visitors must be able to
+  // reach it and read it before deciding to sign in.
+  if (pathname === '/') {
+    return;
+  }
 
   if (pathname.startsWith('/login') || pathname.startsWith('/api/auth')) {
     return;
@@ -23,13 +31,6 @@ export default function middleware(req: Request) {
     return Response.redirect(new URL('/login', req.url));
   }
 }
-
-/**
- * Kept for parity with the Auth.js setup. Middleware must not import the
- * Prisma-backed adapter, so the instance reference is intentionally unused
- * here — it documents that this file stays free of database access.
- */
-void authServer;
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],

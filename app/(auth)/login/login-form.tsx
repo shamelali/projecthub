@@ -101,7 +101,17 @@ export function LoginForm({ providers, initialError }: LoginFormProps) {
                 </Button>
               )}
               {providers.gitlab && (
-                <Button type="button" variant="outline" className="w-full" disabled>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    void authClient.signIn.social({
+                      provider: 'gitlab',
+                      callbackURL: '/dashboard',
+                    })
+                  }
+                >
                   <GitBranch />
                   Continue with GitLab
                 </Button>
