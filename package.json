@@ -23,7 +23,10 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "pnpm db:push && pnpm db:seed"
+    "db:reset": "pnpm db:push && pnpm db:seed",
+    "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "keywords": [],
   "author": "",
@@ -49,6 +52,7 @@
   "dependencies": {
     "@neon/config": "^1.9.1",
     "@neon/env": "^1.6.2",
+    "@prisma/adapter-pg": "^5.22.0",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-checkbox": "^1.3.11",
@@ -69,6 +73,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.48.0",
     "next": "^15.5.26",
+    "pg": "^8.23.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwind-merge": "^3.7.0",
@@ -76,10 +81,12 @@
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "@opennextjs/cloudflare": "^1.20.12",
     "@playwright/test": "^1.63.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.6.3",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@typescript-eslint/eslint-plugin": "^8.70.1",
@@ -100,6 +107,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "wrangler": "^4.151.1"
   }
 }

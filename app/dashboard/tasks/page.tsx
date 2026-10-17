@@ -1,4 +1,5 @@
 import { AlertCircle, CheckCircle2, Circle, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -105,34 +106,36 @@ export default async function TasksPage() {
       ) : (
         <div className="space-y-2">
           {tasks.map((task) => (
-            <Card key={task.id}>
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  {statusIcon(task.status)}
-                  <div>
-                    <p className="font-medium">{task.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {task.project.name} · {task.assignee?.name || 'Unassigned'}
-                    </p>
+            <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="block">
+              <Card className="transition-shadow hover:shadow-md">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    {statusIcon(task.status)}
+                    <div>
+                      <p className="font-medium">{task.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {task.project.name} · {task.assignee?.name || 'Unassigned'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Due date when set, otherwise when the task was created. */}
-                  <span
-                    className={`text-xs ${
-                      task.dueDate && task.dueDate < new Date() && task.status !== 'DONE'
-                        ? 'font-medium text-red-500'
-                        : 'text-muted-foreground'
-                    }`}
-                    title={task.dueDate ? 'Due date' : 'Created'}
-                  >
-                    {task.dueDate ? formatDate(task.dueDate) : formatRelativeDate(task.createdAt)}
-                  </span>
-                  <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
-                  <Badge variant="outline">{task.priority}</Badge>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="flex items-center gap-2">
+                    {/* Due date when set, otherwise when the task was created. */}
+                    <span
+                      className={`text-xs ${
+                        task.dueDate && task.dueDate < new Date() && task.status !== 'DONE'
+                          ? 'font-medium text-red-500'
+                          : 'text-muted-foreground'
+                      }`}
+                      title={task.dueDate ? 'Due date' : 'Created'}
+                    >
+                      {task.dueDate ? formatDate(task.dueDate) : formatRelativeDate(task.createdAt)}
+                    </span>
+                    <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
+                    <Badge variant="outline">{task.priority}</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

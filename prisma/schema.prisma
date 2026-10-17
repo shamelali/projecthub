@@ -2,6 +2,10 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Driver adapters: lets the client run without the Rust query engine, which
+  // is required for the Cloudflare Workers (OpenNext) deployment and works on
+  // Node.js (Vercel) as well. A PrismaPg adapter is passed in lib/db.ts.
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {

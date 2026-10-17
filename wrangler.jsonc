@@ -1,0 +1,36 @@
+// Cloudflare Workers deployment for the Next.js app via @opennextjs/cloudflare.
+// https://opennext.js.org/cloudflare/get-started
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "projecthub",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": [
+    // Enable Node.js API polyfills (required by Next.js / OpenNext).
+    "nodejs_compat",
+    // Allow fetching public URLs from the worker (Brevo, Sentry, Neon, ...).
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      // Must match the worker "name" above.
+      "service": "projecthub"
+    }
+  ],
+  // Non-secret runtime env vars. Secrets (DATABASE_URL, BETTER_AUTH_SECRET,
+  // BREVO_API_KEY, ...) are set with `wrangler secret put` instead.
+  "vars": {
+    "BETTER_AUTH_URL": "https://projecthub.duta-integra.workers.dev",
+    "BETTER_AUTH_TRUSTED_ORIGINS": "https://projecthub.duta-integra.workers.dev,https://projecthub-ashy-sigma.vercel.app",
+    "EMAIL_FROM": "admin@dutaintegra.my",
+    "EMAIL_FROM_NAME": "ProjectHub"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

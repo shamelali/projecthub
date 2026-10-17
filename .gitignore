@@ -38,6 +38,11 @@ yarn-error.log*
 .env.mcp
 .env.mcp.template
 
+# Cloudflare Workers (OpenNext)
+.open-next/
+.wrangler/
+.dev.vars
+
 # Prisma
 # prisma/migrations
 

@@ -7,6 +7,9 @@ import { withSentryConfig } from '@sentry/nextjs/config';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Prisma's generated client must be externalized so OpenNext can patch it
+  // for the Cloudflare Workers (workerd) runtime — see opennext.js.org docs.
+  serverExternalPackages: ['@prisma/client', '.prisma/client'],
   images: {
     remotePatterns: [
       {

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 
@@ -47,13 +48,21 @@ export function TaskCard({ task }: TaskCardProps) {
 
   return (
     <Card className="group relative">
+      {/* Stretched link: the whole card opens the detail page, while the
+          delete button stays above the overlay (z-10). */}
+      <Link
+        href={`/dashboard/tasks/${task.id}`}
+        className="absolute inset-0 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        <span className="sr-only">Open task: {task.title}</span>
+      </Link>
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium leading-snug">{task.title}</p>
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="relative z-10 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={handleDelete}
           >
             <Trash2 className="h-3 w-3 text-muted-foreground" />
