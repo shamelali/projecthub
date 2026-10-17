@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 
 import { db } from '@/lib/db';
+import { syncGitHubRepositories, syncProjectGitData } from '@/lib/github';
 
 const isConfigured = (value: string | undefined) => Boolean(value?.trim());
 
@@ -41,6 +42,56 @@ export const authServer = betterAuth({
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
   },
+  databaseHooks: {
+    session: {
+      create: {
+        /**
+         * Auto-populate a GitHub user's repositories as projects the first time
+         * they sign in with GitHub and have no projects yet.
+         *
+         * Runs in the background and swallows every error: repository import is
+         * a best-effort convenience and must never block or break sign-in.
+         */
+        after: async (session) => {
+          void (async () => {
+            try {
+              const account = await db.account.findFirst({
+                where: { userId: session.userId, providerId: 'github' },
+                select: { accessToken: true },
+              });
+              const accessToken = account?.accessToken;
+              if (!accessToken) return;
+
+              const projectCount = await db.project.count({
+                where: { ownerId: session.userId },
+              });
+              if (projectCount > 0) return;
+
+              const { newProjectIds } = await syncGitHubRepositories({
+                userId: session.userId,
+                accessToken,
+              });
+
+              // Best-effort: sync branches + recent commits for newly imported
+              // projects. Failures are swallowed so sign-in is never blocked.
+              await Promise.all(
+                newProjectIds.map((projectId) =>
+                  syncProjectGitData({
+                    projectId,
+                    userId: session.userId,
+                    accessToken,
+                  })
+                )
+              );
+            } catch {
+              // Intentionally swallowed: sign-in must not fail because GitHub
+              // is unreachable or the token lacks the `repo` scope.
+            }
+          })();
+        },
+      },
+    },
+  },
   socialProviders: {
     // Linking an OAuth identity to an existing account by matching email is a
     // silent account-takeover vector. Keep it off for every provider.
@@ -50,6 +101,9 @@ export const authServer = betterAuth({
             clientId: process.env.GITHUB_ID as string,
             clientSecret: process.env.GITHUB_SECRET as string,
             allowDangerousEmailAccountLinking: false,
+            // Request the `repo` scope so we can list the user's repositories
+            // after sign in (`read:user`/`user:email` are added by default).
+            scope: ['repo'],
           },
         }
       : {}),

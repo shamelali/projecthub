@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { FolderGit2, Plus, Search } from 'lucide-react';
 
+import { GitHubImportButton } from '@/components/github-import';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,7 @@ export default async function ProjectsPage() {
             New Project
           </Button>
         </Link>
+        <GitHubImportButton className="w-auto" />
       </div>
 
       <div className="relative">
@@ -51,6 +53,10 @@ export default async function ProjectsPage() {
               Add Project
             </Button>
           </Link>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Or connect GitHub to import your repositories automatically.
+          </p>
+          <GitHubImportButton className="mt-2 mx-auto" />
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

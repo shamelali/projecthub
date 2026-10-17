@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Clock, ExternalLink, FolderGit2, GitBranch } from 'lucide-react';
 
+import { GitHubSyncButton } from '@/components/github-sync-button';
 import { KanbanBoard } from '@/components/tasks/kanban-board';
 import { NewTaskForm } from '@/components/tasks/new-task-form';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       tasks: {
         orderBy: { position: 'asc' },
         include: { assignee: { select: { name: true, email: true } } },
+      },
+      gitCommits: {
+        orderBy: { authorDate: 'desc' },
+        take: 10,
+      },
+      branches: {
+        orderBy: { name: 'asc' },
       },
       _count: { select: { tasks: true } },
     },
@@ -101,15 +109,59 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       {project.repositoryUrl && (
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">Repository</h2>
-          <a
-            href={project.repositoryUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-          >
-            <ExternalLink className="h-4 w-4" />
-            {project.repositoryUrl}
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={project.repositoryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {project.repositoryUrl}
+            </a>
+            <GitHubSyncButton projectId={project.id} className="w-auto ml-auto" />
+          </div>
+        </div>
+      )}
+
+      {project.gitCommits.length > 0 && (
+        <div className="space-y-2 border-t pt-4">
+          <h2 className="text-xl font-semibold">Recent Commits</h2>
+          <div className="space-y-2">
+            {project.gitCommits.map((commit) => (
+              <div key={commit.sha} className="flex items-start gap-3 text-sm">
+                <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
+                  {commit.shortSha}
+                </div>
+                <div>
+                  <div className="font-medium">{commit.message.split('\n')[0]}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {commit.authorName} &bull; {new Date(commit.authorDate).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {project.branches.length > 0 && (
+        <div className="space-y-2 border-t pt-4">
+          <h2 className="text-xl font-semibold">Branches ({project.branches.length})</h2>
+          <div className="flex flex-wrap gap-2">
+            {project.branches.map((branch) => (
+              <span
+                key={branch.name}
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                  branch.isDefault
+                    ? 'border-primary text-primary bg-primary/10'
+                    : 'border-input text-muted-foreground bg-background'
+                }`}
+              >
+                {branch.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>

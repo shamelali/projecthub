@@ -39,7 +39,21 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(project, { status: 201 });
+  // Retrieve pending tasks (NOT DONE) for the newly created project
+  const pendingTasks = await db.task.findMany({
+    where: {
+      projectId: project.id,
+      status: { not: 'DONE' },
+    },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      project: true,
+      assignee: { select: { name: true, email: true } },
+      reporter: { select: { name: true, email: true } },
+    },
+  });
+
+  return NextResponse.json({ project, pendingTasks }, { status: 201 });
 }
 
 export async function GET() {
