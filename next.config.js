@@ -1,3 +1,9 @@
+// `withSentryConfig` is only exported from the `@sentry/nextjs/config` entry
+// point — not the package root. This is what actually loads the
+// sentry.{client,server,edge}.config.ts files and uploads source maps; without
+// it those config files are inert.
+import { withSentryConfig } from '@sentry/nextjs/config';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -48,4 +54,11 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+// `withSentryConfig` is what actually loads sentry.{client,server,edge}.config.ts
+// and uploads source maps. Without it the Sentry config files are inert.
+export default withSentryConfig(nextConfig, {
+  // Source maps let Sentry de-minify stack traces. Disable if uploads fail.
+  silent: !process.env.SENTRY_AUTH_TOKEN,
+  orgSlug: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+});
