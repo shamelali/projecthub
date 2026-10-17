@@ -11,11 +11,33 @@ import { db } from '@/lib/db';
 import { projectAccessWhere } from '@/lib/permissions';
 import { formatRelativeDate } from '@/lib/utils';
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const session = await auth();
+  const { q } = await searchParams;
+  const query = (q ?? '').trim();
 
   const projects = await db.project.findMany({
-    where: session?.user?.id ? projectAccessWhere(session.user.id) : { id: '' },
+    where: {
+      AND: [
+        session?.user?.id ? projectAccessWhere(session.user.id) : { id: '' },
+        // Case-insensitive substring across name, slug and description. The
+        // filter composes with the access filter, so a search can never widen
+        // visibility.
+        query
+          ? {
+              OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { slug: { contains: query, mode: 'insensitive' } },
+                { description: { contains: query, mode: 'insensitive' } },
+              ],
+            }
+          : {},
+      ],
+    },
     orderBy: { lastActivityAt: 'desc' },
     include: { _count: { select: { tasks: true } } },
   });
@@ -36,12 +58,31 @@ export default async function ProjectsPage() {
         <GitHubImportButton className="w-auto" />
       </div>
 
-      <div className="relative">
+      {/* Plain GET form: no client JS needed, and ?q= URLs are shareable. */}
+      <form action="/dashboard/projects" method="GET" className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input type="text" placeholder="Search projects..." className="pl-10" />
-      </div>
+        <Input
+          type="text"
+          name="q"
+          defaultValue={query}
+          placeholder="Search projects..."
+          className="pl-10"
+        />
+      </form>
 
-      {projects.length === 0 ? (
+      {projects.length === 0 && query ? (
+        <div className="rounded-lg border border-dashed p-12 text-center">
+          <Search className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-semibold">No projects match “{query}”</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try a different name or{' '}
+            <Link href="/dashboard/projects" className="text-primary hover:underline">
+              clear the search
+            </Link>
+            .
+          </p>
+        </div>
+      ) : projects.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">
           <FolderGit2 className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-semibold">No projects yet</h3>
@@ -88,8 +129,9 @@ export default async function ProjectsPage() {
                       <span>{project.techStack.slice(0, 3).join(', ')}</span>
                     )}
                   </div>
-                  {/* lastActivityAt tracks repo pushes for GitHub imports and
-                      task movement for manual projects. */}
+                  {/* lastActivityAt moves with task changes (server actions),
+                      GitHub pushes (imports + the daily /api/cron/sync-git job),
+                      and is only ever moved forward. */}
                   <p className="mt-2 text-xs text-muted-foreground">
                     Last activity {formatRelativeDate(project.lastActivityAt)}
                   </p>
