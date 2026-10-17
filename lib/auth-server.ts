@@ -7,7 +7,9 @@ import { syncGitHubRepositories, syncProjectGitData } from '@/lib/github';
 
 const isConfigured = (value: string | undefined) => Boolean(value?.trim());
 
-const DEMO_EMAIL = 'demo@projecthub.dev';
+// Must match the address scripts/seed.ts seeds. If these diverge, a custom
+// DEMO_EMAIL creates an account that the session gate below never blocks.
+const DEMO_EMAIL = (process.env.DEMO_EMAIL ?? 'demo@projecthub.dev').toLowerCase();
 const isDemoMode = process.env.DEMO_MODE === 'true';
 
 /**
