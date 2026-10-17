@@ -4,15 +4,15 @@ Welcome to the ProjectHub documentation. This folder contains operational and us
 
 ## How to navigate
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| [`README.md`](README.md) | Everyone | This index |
-| [`user-manual.md`](user-manual.md) | End users | How to create projects, manage tasks, share with teammates, use the client portal |
-| [`operations.md`](operations.md) | Operators / DevOps | Installation, configuration, deployment, backups, monitoring |
-| [`api.md`](api.md) | Developers | Server Actions and API route reference |
-| [`database.md`](database.md) | Developers / DBAs | Schema, migrations, indexes, backup/restore |
-| [`glossary.md`](glossary.md) | Everyone | Terminology used across the project |
-| [`faq.md`](faq.md) | Everyone | Frequently asked questions |
+| Document                           | Audience           | Purpose                                                                           |
+| ---------------------------------- | ------------------ | --------------------------------------------------------------------------------- |
+| [`README.md`](README.md)           | Everyone           | This index                                                                        |
+| [`user-manual.md`](user-manual.md) | End users          | How to create projects, manage tasks, share with teammates, use the client portal |
+| [`operations.md`](operations.md)   | Operators / DevOps | Installation, configuration, deployment, backups, monitoring                      |
+| [`api.md`](api.md)                 | Developers         | Server Actions and API route reference                                            |
+| [`database.md`](database.md)       | Developers / DBAs  | Schema, migrations, indexes, backup/restore                                       |
+| [`glossary.md`](glossary.md)       | Everyone           | Terminology used across the project                                               |
+| [`faq.md`](faq.md)                 | Everyone           | Frequently asked questions                                                        |
 
 ## Related spec documents
 

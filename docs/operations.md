@@ -102,20 +102,20 @@ Ensure `.env.local` points at the local Postgres (port 5432, `projecthub`/`proje
 
 ## 6. Environment variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| DATABASE_URL | Yes | Neon pooled connection string |
-| DATABASE_URL_UNPOOLED | Yes (migrations) | Neon direct connection |
-| NEXTAUTH_SECRET | Yes | `openssl rand -base64 32` |
-| NEXTAUTH_URL | Yes | Base URL of the app |
-| NEXT_PUBLIC_SUPABASE_URL | Yes | Supabase project URL |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY | Yes | Supabase anon key |
-| GITHUB_ID / GITHUB_SECRET | No | GitHub OAuth |
-| GITLAB_ID / GITLAB_SECRET | No | GitLab OAuth |
-| DEMO_EMAIL / DEMO_PASSWORD | No | Credentials login (non-prod only) |
-| VERCEL_TOKEN | No | Deployment tracking |
-| NEXT_PUBLIC_APP_URL | No | Public app URL |
-| BREVO_API_KEY | No | Invite email delivery |
+| Variable                      | Required         | Description                       |
+| ----------------------------- | ---------------- | --------------------------------- |
+| DATABASE_URL                  | Yes              | Neon pooled connection string     |
+| DATABASE_URL_UNPOOLED         | Yes (migrations) | Neon direct connection            |
+| NEXTAUTH_SECRET               | Yes              | `openssl rand -base64 32`         |
+| NEXTAUTH_URL                  | Yes              | Base URL of the app               |
+| NEXT_PUBLIC_SUPABASE_URL      | Yes              | Supabase project URL              |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | Yes              | Supabase anon key                 |
+| GITHUB_ID / GITHUB_SECRET     | No               | GitHub OAuth                      |
+| GITLAB_ID / GITLAB_SECRET     | No               | GitLab OAuth                      |
+| DEMO_EMAIL / DEMO_PASSWORD    | No               | Credentials login (non-prod only) |
+| VERCEL_TOKEN                  | No               | Deployment tracking               |
+| NEXT_PUBLIC_APP_URL           | No               | Public app URL                    |
+| BREVO_API_KEY                 | No               | Invite email delivery             |
 
 ---
 
@@ -131,10 +131,10 @@ Ensure `.env.local` points at the local Postgres (port 5432, `projecthub`/`proje
 
 ## 8. Troubleshooting
 
-| Issue | Likely cause | Fix |
-|-------|--------------|-----|
-| `prepared statement "s0" already exists` | Migration run on pooled connection | Use `DATABASE_URL_UNPOOLED` |
-| 403 on project page | User not owner/member | Check `ProjectMember` row |
-| Invite email not received | Brevo not configured | Fall back to copyable in-app link |
-| Slug duplicate | Project name collision | Edit name/slug |
-| OAuth button missing | Provider credentials missing | Set `*_ID` and `*_SECRET` |
+| Issue                                    | Likely cause                       | Fix                               |
+| ---------------------------------------- | ---------------------------------- | --------------------------------- |
+| `prepared statement "s0" already exists` | Migration run on pooled connection | Use `DATABASE_URL_UNPOOLED`       |
+| 403 on project page                      | User not owner/member              | Check `ProjectMember` row         |
+| Invite email not received                | Brevo not configured               | Fall back to copyable in-app link |
+| Slug duplicate                           | Project name collision             | Edit name/slug                    |
+| OAuth button missing                     | Provider credentials missing       | Set `*_ID` and `*_SECRET`         |

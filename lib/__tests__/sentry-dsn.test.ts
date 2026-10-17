@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { resolveSentryDsn } from '@/lib/sentry-dsn';
 
-const REAL_DSN = 'https://b6953289261a0cf0c2636945ae132b2b@o4511387608875008.ingest.de.sentry.io/4512010803019856';
+const REAL_DSN =
+  'https://b6953289261a0cf0c2636945ae132b2b@o4511387608875008.ingest.de.sentry.io/4512010803019856';
 
 describe('resolveSentryDsn', () => {
   it('accepts a well-formed DSN', () => {

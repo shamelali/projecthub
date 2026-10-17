@@ -34,7 +34,7 @@ export const auth = cache(async (): Promise<{ user: SessionUser } | null> => {
       email: user.email,
       name: user.name || user.email,
       image: user.image ?? null,
-      role: (((user as { role?: UserRole }).role ?? 'PERSONAL') as UserRole),
+      role: ((user as { role?: UserRole }).role ?? 'PERSONAL') as UserRole,
     },
   };
 });

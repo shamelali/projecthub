@@ -28,7 +28,7 @@ YYYY-MM-DD
 ## ADR-001: Next.js 15 App Router
 
 **Status:** Accepted  
-**Date:** 2026-10-17  
+**Date:** 2026-10-17
 
 **Context:** ProjectHub needs a full-stack React framework with server-side rendering, API routes, and a familiar deployment target (Vercel).
 
@@ -41,7 +41,7 @@ YYYY-MM-DD
 ## ADR-002: Neon PostgreSQL + Prisma ORM
 
 **Status:** Accepted  
-**Date:** 2026-10-17  
+**Date:** 2026-10-17
 
 **Context:** Need a managed Postgres with branching, scale-to-zero, and easy local/dev parity.
 
@@ -54,7 +54,7 @@ YYYY-MM-DD
 ## ADR-003: NextAuth v5 (Auth.js)
 
 **Status:** Accepted  
-**Date:** 2026-10-17  
+**Date:** 2026-10-17
 
 **Context:** Authentication with GitHub, GitLab, and Credentials providers; Prisma adapter for session/account storage.
 
@@ -67,7 +67,7 @@ YYYY-MM-DD
 ## ADR-004: Tailwind CSS + shadcn/ui
 
 **Status:** Accepted  
-**Date:** 2026-10-17  
+**Date:** 2026-10-17
 
 **Context:** Need an accessible, consistent UI component library with theming.
 
@@ -80,7 +80,7 @@ YYYY-MM-DD
 ## ADR-005: pnpm as package manager
 
 **Status:** Accepted  
-**Date:** 2026-10-17  
+**Date:** 2026-10-17
 
 **Decision:** Enforce pnpm via `corepack enable`, `devEngines`, and `packageManager` field.
 
@@ -91,7 +91,7 @@ YYYY-MM-DD
 ## ADR-006: Supabase Realtime (planned)
 
 **Status:** Proposed  
-**Date:** 2026-10-17  
+**Date:** 2026-10-17
 
 **Context:** Real-time sync for Kanban and notifications is planned for MVP v0.2.
 

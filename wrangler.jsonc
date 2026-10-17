@@ -9,18 +9,18 @@
     // Enable Node.js API polyfills (required by Next.js / OpenNext).
     "nodejs_compat",
     // Allow fetching public URLs from the worker (Brevo, Sentry, Neon, ...).
-    "global_fetch_strictly_public"
+    "global_fetch_strictly_public",
   ],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
       // Must match the worker "name" above.
-      "service": "projecthub"
-    }
+      "service": "projecthub",
+    },
   ],
   // Non-secret runtime env vars. Secrets (DATABASE_URL, BETTER_AUTH_SECRET,
   // BREVO_API_KEY, ...) are set with `wrangler secret put` instead.
@@ -31,9 +31,9 @@
     "BETTER_AUTH_URL": "https://projecthub.shamelali.workers.dev",
     "BETTER_AUTH_TRUSTED_ORIGINS": "https://projecthub.shamelali.workers.dev,https://projecthub-ashy-sigma.vercel.app",
     "EMAIL_FROM": "admin@dutaintegra.my",
-    "EMAIL_FROM_NAME": "ProjectHub"
+    "EMAIL_FROM_NAME": "ProjectHub",
   },
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }

@@ -17,7 +17,7 @@ const DEMO_EMAIL = process.env.DEMO_EMAIL ?? 'demo@projecthub.dev';
 // in git history, so seeding refuses to run without an explicit one.
 const DEMO_PASSWORD = requireEnv(
   'DEMO_PASSWORD',
-  'Generate one with:\n  openssl rand -base64 24\nThen export it before running pnpm db:seed.',
+  'Generate one with:\n  openssl rand -base64 24\nThen export it before running pnpm db:seed.'
 );
 
 // The demo account is only created when DEMO_MODE=true. In production this

@@ -11,13 +11,7 @@
  * `now` is injectable so callers (and tests) can pin the clock.
  */
 
-export type TaskStatus =
-  | 'BACKLOG'
-  | 'TODO'
-  | 'IN_PROGRESS'
-  | 'IN_REVIEW'
-  | 'DONE'
-  | 'BLOCKED';
+export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'BLOCKED';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
@@ -68,12 +62,8 @@ export function suggestNextStep(
   const status = task.status as TaskStatus;
   const priority = task.priority as TaskPriority;
   const tags = task.tags ?? [];
-  const relatedSha = tags
-    .find((tag) => tag.startsWith(COMMIT_TAG))
-    ?.slice(COMMIT_TAG.length);
-  const relatedBranch = tags
-    .find((tag) => tag.startsWith(BRANCH_TAG))
-    ?.slice(BRANCH_TAG.length);
+  const relatedSha = tags.find((tag) => tag.startsWith(COMMIT_TAG))?.slice(COMMIT_TAG.length);
+  const relatedBranch = tags.find((tag) => tag.startsWith(BRANCH_TAG))?.slice(BRANCH_TAG.length);
 
   const dueDate = toDate(task.dueDate);
   const startedAt = toDate(task.startedAt);

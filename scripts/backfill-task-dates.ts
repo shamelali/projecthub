@@ -26,9 +26,7 @@ async function main() {
   const commitTagged = tasks
     .map((task) => ({
       ...task,
-      sha: task.tags
-        .find((tag) => tag.startsWith(COMMIT_TAG))
-        ?.slice(COMMIT_TAG.length),
+      sha: task.tags.find((tag) => tag.startsWith(COMMIT_TAG))?.slice(COMMIT_TAG.length),
     }))
     .filter((task): task is typeof task & { sha: string } => Boolean(task.sha));
 

@@ -20,17 +20,20 @@ ProjectHub — Project Management Platform
 ## 2. Projects
 
 ### Create a project
+
 - Click **New Project** on the dashboard.
 - Enter name, optional description, absolute filesystem path, and optional Git repository URL.
 - A slug is generated automatically from the name.
 - Click **Create**.
 
 ### Edit a project
+
 - Open the project → **Settings**.
 - Update name, description, path, repository URL, status, or visibility.
 - Visibility options: `PRIVATE` (only you and members), `TEAM`, `PUBLIC`, `CLIENT`.
 
 ### Archive or delete
+
 - Archive sets status to `ARCHIVED` (keeps data, hides from active views).
 - Delete removes the project and all related data (tasks, members, notes, logs).
 
@@ -49,6 +52,7 @@ ProjectHub — Project Management Platform
 ## 4. Sharing with teammates
 
 ### Invite a member
+
 1. Open the project → **Settings → Members**.
 2. Click **Invite member**, enter a teammate's email, and choose a role:
    - **Owner** — full control (only project owners can assign this)
@@ -59,11 +63,13 @@ ProjectHub — Project Management Platform
 4. Otherwise, an invitation is created (valid 7 days). They can accept it after signing up.
 
 ### Manage members
+
 - Change a member's role (owners/admins only).
 - Remove a member (cannot remove the project owner; cannot remove yourself if you're the last owner).
 - Revoke pending invitations at any time.
 
 ### Share with clients / stakeholders (read-only)
+
 1. Open the project → **Settings → Client access**.
 2. Click **Generate share link**. A read-only URL is created (e.g., `/c/<token>/projects/<slug>`).
 3. Copy and send the link to a client. No login required.

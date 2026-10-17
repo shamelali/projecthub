@@ -20,7 +20,6 @@ function mockFetch(response: Partial<Response> & { json?: () => Promise<unknown>
 }
 
 describe('sendEmail', () => {
-
   beforeEach(() => {
     // NODE_ENV is readonly in the Node types, so stub rather than assign.
     vi.stubEnv('NODE_ENV', 'production');

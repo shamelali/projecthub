@@ -21,14 +21,14 @@ ProjectHub — Neon PostgreSQL + Prisma
 
 ## Commands
 
-| Command | Purpose |
-|---------|---------|
-| `pnpm db:generate` | Generate Prisma client |
-| `pnpm db:push` | Push schema to dev DB (skip migrations) |
-| `pnpm db:migrate` | Create + apply a new migration (dev) |
-| `pnpm db:migrate:deploy` | Apply migrations in production |
-| `pnpm db:studio` | Open Prisma Studio |
-| `pnpm db:seed` | Seed demo data |
+| Command                  | Purpose                                 |
+| ------------------------ | --------------------------------------- |
+| `pnpm db:generate`       | Generate Prisma client                  |
+| `pnpm db:push`           | Push schema to dev DB (skip migrations) |
+| `pnpm db:migrate`        | Create + apply a new migration (dev)    |
+| `pnpm db:migrate:deploy` | Apply migrations in production          |
+| `pnpm db:studio`         | Open Prisma Studio                      |
+| `pnpm db:seed`           | Seed demo data                          |
 
 **Rule:** After editing `schema.prisma`, run `pnpm db:migrate` (dev). Never hand-edit migration SQL.
 
@@ -38,41 +38,41 @@ ProjectHub — Neon PostgreSQL + Prisma
 
 ## Entity summary
 
-| Entity | Key fields | Relations |
-|--------|-----------|-----------|
-| User | id, email, name, role, githubId, gitlabId | projects (owned), members, tasks, comments, sessions, notes, logs |
-| Project | id, name, slug, description, path, repositoryUrl, status, visibility, ownerId | members, tasks, commits, branches, deployments, sessions, notes, settings |
-| ProjectMember | userId, projectId, role (OWNER/ADMIN/MEMBER/VIEWER) | user, project |
-| Task | title, status, priority, position, projectId, assigneeId, reporterId | project, assignee, reporter, comments, subtasks |
-| TaskComment | content, taskId, userId | task, user |
-| GitCommit | sha, message, author, projectId, branchName | project |
-| GitBranch | name, isDefault, projectId | project |
-| GitRemote | name, url, projectId | project |
-| Deployment | provider, externalId, url, status, environment, projectId | project |
-| OpenCodeSession | sessionId, model, provider, status, projectId, userId | project, user |
-| MCPServer | name, type, url, status, projectId, isGlobal | project (optional) |
-| ProjectNote | title, content, projectId, userId, isPinned | project, user |
-| Notification | type, title, message, read, userId, projectId? | user, project (optional) |
-| ActivityLog | action, entityType, entityId, userId?, projectId?, metadata? | user (optional), project (optional) |
-| ProjectSettings | projectId, autoScan, scanIntervalMinutes, clientShareToken, clientShareScope | project |
-| UserPreferences | userId, theme, defaultView, projectsPath, notifications, shortcuts | user |
+| Entity          | Key fields                                                                    | Relations                                                                 |
+| --------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| User            | id, email, name, role, githubId, gitlabId                                     | projects (owned), members, tasks, comments, sessions, notes, logs         |
+| Project         | id, name, slug, description, path, repositoryUrl, status, visibility, ownerId | members, tasks, commits, branches, deployments, sessions, notes, settings |
+| ProjectMember   | userId, projectId, role (OWNER/ADMIN/MEMBER/VIEWER)                           | user, project                                                             |
+| Task            | title, status, priority, position, projectId, assigneeId, reporterId          | project, assignee, reporter, comments, subtasks                           |
+| TaskComment     | content, taskId, userId                                                       | task, user                                                                |
+| GitCommit       | sha, message, author, projectId, branchName                                   | project                                                                   |
+| GitBranch       | name, isDefault, projectId                                                    | project                                                                   |
+| GitRemote       | name, url, projectId                                                          | project                                                                   |
+| Deployment      | provider, externalId, url, status, environment, projectId                     | project                                                                   |
+| OpenCodeSession | sessionId, model, provider, status, projectId, userId                         | project, user                                                             |
+| MCPServer       | name, type, url, status, projectId, isGlobal                                  | project (optional)                                                        |
+| ProjectNote     | title, content, projectId, userId, isPinned                                   | project, user                                                             |
+| Notification    | type, title, message, read, userId, projectId?                                | user, project (optional)                                                  |
+| ActivityLog     | action, entityType, entityId, userId?, projectId?, metadata?                  | user (optional), project (optional)                                       |
+| ProjectSettings | projectId, autoScan, scanIntervalMinutes, clientShareToken, clientShareScope  | project                                                                   |
+| UserPreferences | userId, theme, defaultView, projectsPath, notifications, shortcuts            | user                                                                      |
 
 ## Enums
 
-| Enum | Values |
-|------|--------|
-| UserRole | PERSONAL, TEAM, ADMIN, CLIENT |
-| Visibility | PRIVATE, TEAM, PUBLIC, CLIENT |
-| MemberRole | OWNER, ADMIN, MEMBER, VIEWER |
-| ProjectStatus | ACTIVE, ARCHIVED, ON_HOLD, DEPRECATED |
-| TaskStatus | BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE, BLOCKED |
-| Priority | LOW, MEDIUM, HIGH, CRITICAL |
-| SessionStatus | ACTIVE, COMPLETED, FAILED, ARCHIVED |
-| MCPStatus | CONNECTED, DISCONNECTED, ERROR, UNKNOWN |
-| DeploymentStatus | PENDING, BUILDING, DEPLOYING, SUCCESS, FAILED, CANCELLED |
-| DeploymentEnv | PREVIEW, PRODUCTION, STAGING, DEVELOPMENT |
-| DeploymentProvider | VERCEL, NETLIFY, CLOUDFLARE, DOCKER, KUBERNETES, OTHER |
-| NotificationType | TASK_ASSIGNED, TASK_UPDATED, COMMENT_ADDED, DEPLOYMENT_SUCCESS, DEPLOYMENT_FAILED, GIT_PUSH, MCP_STATUS_CHANGE, SESSION_COMPLETED, MENTION, SYSTEM |
+| Enum               | Values                                                                                                                                             |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UserRole           | PERSONAL, TEAM, ADMIN, CLIENT                                                                                                                      |
+| Visibility         | PRIVATE, TEAM, PUBLIC, CLIENT                                                                                                                      |
+| MemberRole         | OWNER, ADMIN, MEMBER, VIEWER                                                                                                                       |
+| ProjectStatus      | ACTIVE, ARCHIVED, ON_HOLD, DEPRECATED                                                                                                              |
+| TaskStatus         | BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE, BLOCKED                                                                                               |
+| Priority           | LOW, MEDIUM, HIGH, CRITICAL                                                                                                                        |
+| SessionStatus      | ACTIVE, COMPLETED, FAILED, ARCHIVED                                                                                                                |
+| MCPStatus          | CONNECTED, DISCONNECTED, ERROR, UNKNOWN                                                                                                            |
+| DeploymentStatus   | PENDING, BUILDING, DEPLOYING, SUCCESS, FAILED, CANCELLED                                                                                           |
+| DeploymentEnv      | PREVIEW, PRODUCTION, STAGING, DEVELOPMENT                                                                                                          |
+| DeploymentProvider | VERCEL, NETLIFY, CLOUDFLARE, DOCKER, KUBERNETES, OTHER                                                                                             |
+| NotificationType   | TASK_ASSIGNED, TASK_UPDATED, COMMENT_ADDED, DEPLOYMENT_SUCCESS, DEPLOYMENT_FAILED, GIT_PUSH, MCP_STATUS_CHANGE, SESSION_COMPLETED, MENTION, SYSTEM |
 
 ## Indexes (selected)
 
@@ -86,9 +86,10 @@ ProjectHub — Neon PostgreSQL + Prisma
 
 ```ts
 projectAccessWhere(userId) = {
-  OR: [{ ownerId: userId }, { members: { some: { userId } } }]
-}
+  OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+};
 ```
+
 Used by project detail, project list, and task access. Server actions layer role checks on top (MEMBER+/ADMIN+/OWNER).
 
 ## Migrations & branching

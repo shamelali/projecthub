@@ -10,13 +10,16 @@ import {
   User,
 } from 'lucide-react';
 
+import { TaskQuickActions } from '@/components/tasks/task-quick-actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { updateTask } from '@/lib/actions/tasks';
 import { auth } from '@/lib/auth';
-import { suggestNextStep } from '@/lib/suggest-next-step';
-import { requireTaskAccess } from '@/lib/permissions';
 import { db } from '@/lib/db';
+import { requireTaskAccess } from '@/lib/permissions';
+import { suggestNextStep } from '@/lib/suggest-next-step';
 import { formatDate, formatRelativeDate } from '@/lib/utils';
 
 const priorityVariant = (priority: string) => {
@@ -47,11 +50,7 @@ const statusVariant = (status: string) => {
   }
 };
 
-export default async function TaskDetailPage({
-  params,
-}: {
-  params: Promise<{ taskId: string }>;
-}) {
+export default async function TaskDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
   const { taskId } = await params;
   const session = await auth();
   if (!session?.user?.id) notFound();
@@ -76,9 +75,10 @@ export default async function TaskDetailPage({
 
   const suggestion = suggestNextStep(task);
   const commitSha = suggestion.relatedSha;
-  const commitUrl = commitSha && task.project.repositoryUrl
-    ? `${task.project.repositoryUrl}/commit/${commitSha}`
-    : null;
+  const commitUrl =
+    commitSha && task.project.repositoryUrl
+      ? `${task.project.repositoryUrl}/commit/${commitSha}`
+      : null;
 
   const meta = [
     { label: 'Assignee', value: task.assignee?.name ?? 'Unassigned', icon: User },
@@ -120,6 +120,9 @@ export default async function TaskDetailPage({
             <CardTitle className="text-base">Suggested next step</CardTitle>
             <p className="mt-1 text-sm font-medium">{suggestion.headline}</p>
             <p className="mt-1 text-sm text-muted-foreground">{suggestion.reason}</p>
+            <div className="mt-3">
+              <TaskQuickActions taskId={task.id} status={task.status} position={task.position} />
+            </div>
             {commitUrl && commitSha && (
               <a
                 href={commitUrl}
@@ -169,6 +172,26 @@ export default async function TaskDetailPage({
               </p>
             </div>
           )}
+
+          {/* Partial update on purpose: only dueDate is sent, and updateTask
+              leaves every absent field untouched. */}
+          <form action={updateTask.bind(null, task.id)} className="flex items-end gap-2">
+            <div className="space-y-1">
+              <label htmlFor="dueDate" className="text-sm font-medium">
+                Due date
+              </label>
+              <Input
+                type="date"
+                id="dueDate"
+                name="dueDate"
+                defaultValue={task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : ''}
+                className="w-44"
+              />
+            </div>
+            <Button type="submit" variant="outline" size="sm">
+              Save
+            </Button>
+          </form>
 
           {task.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">

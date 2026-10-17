@@ -41,7 +41,10 @@ export async function sendEmail(params: EmailParams): Promise<void> {
 ║  To: ${to}
 ║  Subject: ${subject}
 ║ ─────────────────────────────────────────────────────────────────────────────
-║${text.split('\n').map((line) => `║ ${line}`).join('\n')}
+║${text
+      .split('\n')
+      .map((line) => `║ ${line}`)
+      .join('\n')}
 ╚══════════════════════════════════════════════════════════════════════════════════
 `);
     return;

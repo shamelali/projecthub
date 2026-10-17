@@ -138,9 +138,7 @@ export const authServer = betterAuth({
           });
 
           if (user?.email === DEMO_EMAIL) {
-            throw new Error(
-              'Demo account is disabled. Create your own account to sign in.',
-            );
+            throw new Error('Demo account is disabled. Create your own account to sign in.');
           }
         },
       },

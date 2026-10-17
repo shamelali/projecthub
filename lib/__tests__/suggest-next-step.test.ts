@@ -80,16 +80,10 @@ describe('suggestNextStep', () => {
   });
 
   it('suggests re-scoping tasks stuck in progress for a week or more', () => {
-    const fresh = suggestNextStep(
-      { ...base, status: 'IN_PROGRESS', startedAt: daysAgo(2) },
-      NOW
-    );
+    const fresh = suggestNextStep({ ...base, status: 'IN_PROGRESS', startedAt: daysAgo(2) }, NOW);
     expect(fresh.headline).toBe('Keep it moving');
 
-    const stale = suggestNextStep(
-      { ...base, status: 'IN_PROGRESS', startedAt: daysAgo(9) },
-      NOW
-    );
+    const stale = suggestNextStep({ ...base, status: 'IN_PROGRESS', startedAt: daysAgo(9) }, NOW);
     expect(stale.headline).toBe('Re-scope or park it');
     expect(stale.reason).toContain('9 days');
   });
@@ -116,10 +110,7 @@ describe('suggestNextStep', () => {
   });
 
   it('appends owner guidance when no one is assigned', () => {
-    const assigned = suggestNextStep(
-      { ...base, status: 'TODO', assignee: { name: 'Alice' } },
-      NOW
-    );
+    const assigned = suggestNextStep({ ...base, status: 'TODO', assignee: { name: 'Alice' } }, NOW);
     expect(assigned.reason).not.toContain('No owner');
 
     const unassigned = suggestNextStep({ ...base, status: 'TODO' }, NOW);
@@ -135,7 +126,14 @@ describe('suggestNextStep', () => {
 
   it('tolerates missing dates and tags', () => {
     const result = suggestNextStep(
-      { title: 'X', status: 'TODO', priority: 'LOW', dueDate: null, startedAt: null, createdAt: null },
+      {
+        title: 'X',
+        status: 'TODO',
+        priority: 'LOW',
+        dueDate: null,
+        startedAt: null,
+        createdAt: null,
+      },
       NOW
     );
     expect(result.headline).toBe('Move it to In Progress');

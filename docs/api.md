@@ -23,6 +23,7 @@ ProjectHub
 ## Projects (`lib/actions/projects.ts`)
 
 ### createProject(formData)
+
 - Inputs: `name`, `description`, `path`, `repositoryUrl`
 - Auth: required
 - Creates project with `ownerId = session.user.id`; slug auto-generated
@@ -30,6 +31,7 @@ ProjectHub
 - Errors: missing name/path; duplicate slug
 
 ### deleteProject(projectId)
+
 - Auth: required + `requireProjectAccess`
 - Hard-deletes project (cascades members, tasks, etc.)
 - Redirects to `/dashboard/projects`
@@ -39,6 +41,7 @@ ProjectHub
 ## Members (`lib/actions/members.ts`) — planned
 
 ### inviteMember({ projectId, email, role })
+
 - Auth: required + `requireProjectRole(..., ADMIN)`
 - Role cannot be OWNER; only OWNER may invite ADMIN
 - Existing user → `ProjectMember` + Notification + ActivityLog
@@ -46,31 +49,38 @@ ProjectHub
 - Returns `{ error }` or `{ ok: true }`
 
 ### acceptInvitation(token)
+
 - Resolves hashed token → valid, unaccepted, non-expired invitation matching session email
 - Creates `ProjectMember`; marks invitation accepted
 - Notifies inviter + ActivityLog
 - Redirects to project page
 
 ### revokeInvitation(invitationId)
+
 - Auth: ADMIN+ on project
 - Deletes pending invitation
 
 ### removeMember({ projectId, userId })
+
 - Auth: ADMIN+
 - Cannot remove project owner; cannot self-remove if last owner
 
 ### changeMemberRole({ projectId, userId, role })
+
 - Auth: OWNER for ADMIN role; ADMIN for MEMBER/VIEWER
 
 ### generateClientShareToken({ projectId })
+
 - Auth: ADMIN+
 - Sets `ProjectSettings.clientShareToken` (UUID); default scope
 
 ### revokeClientShareToken({ projectId })
+
 - Auth: ADMIN+
 - Sets `clientShareToken = null`
 
 ### updateClientShareScope({ projectId, scope })
+
 - Auth: ADMIN+
 - Merges scope JSON (tasks, git, deployments, notes)
 
@@ -79,13 +89,16 @@ ProjectHub
 ## Tasks (`lib/actions/tasks.ts`)
 
 ### createTask(formData)
+
 - Inputs: `title`, `description`, `status`, `priority`, `assigneeId`, `dueDate`, `projectId`
 - Auth: required + project write access (MEMBER+)
 
 ### updateTask({ id, ...fields })
+
 - Auth: required + `requireTaskAccess`
 
 ### deleteTask(taskId)
+
 - Auth: required + project write access
 
 ---
@@ -93,6 +106,7 @@ ProjectHub
 ## GitHub (`lib/actions/github.ts`)
 
 ### importRepositories()
+
 - Auth: required + GitHub OAuth connected
 - Imports repos as projects (path = local clone, repositoryUrl set)
 
@@ -100,12 +114,12 @@ ProjectHub
 
 ## API routes
 
-| Route | Method | Auth | Purpose |
-|-------|--------|------|---------|
-| `app/api/auth/[...path]/route.ts` | GET/POST | No (NextAuth) | Sign-in/callback |
-| `app/api/scan/route.ts` | POST | Yes | Trigger local project scan |
-| `app/api/projects/route.ts` | GET | Yes | List accessible projects |
-| `app/api/invitations/accept/route.ts` | GET | Yes | Accept invite via token (planned) |
+| Route                                 | Method   | Auth          | Purpose                           |
+| ------------------------------------- | -------- | ------------- | --------------------------------- |
+| `app/api/auth/[...path]/route.ts`     | GET/POST | No (NextAuth) | Sign-in/callback                  |
+| `app/api/scan/route.ts`               | POST     | Yes           | Trigger local project scan        |
+| `app/api/projects/route.ts`           | GET      | Yes           | List accessible projects          |
+| `app/api/invitations/accept/route.ts` | GET      | Yes           | Accept invite via token (planned) |
 
 ---
 
@@ -119,10 +133,10 @@ ProjectHub
 
 ## Errors
 
-| Condition | Response |
-|-----------|----------|
-| Unauthenticated | `redirect('/login')` |
-| Forbidden (role) | `Error('Forbidden')` → 403 UI toast |
-| Not found | `notFound()` → 404 |
-| Validation error | `{ error: '...' }` |
+| Condition               | Response                                  |
+| ----------------------- | ----------------------------------------- |
+| Unauthenticated         | `redirect('/login')`                      |
+| Forbidden (role)        | `Error('Forbidden')` → 403 UI toast       |
+| Not found               | `notFound()` → 404                        |
+| Validation error        | `{ error: '...' }`                        |
 | DB constraint violation | `{ error: '...' }` (e.g., duplicate slug) |
