@@ -41,8 +41,8 @@ function slugify(name: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-/** Generate a globally unique slug for a project owned by `ownerId`. */
-async function uniqueSlug(base: string, ownerId: string): Promise<string> {
+/** Generate a globally unique slug. (`slug` is globally unique on Project.) */
+async function uniqueSlug(base: string, _ownerId: string): Promise<string> {
   let slug = slugify(base) || 'project';
   let attempt = 0;
   while (await db.project.findFirst({ where: { slug } })) {
