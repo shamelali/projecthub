@@ -82,7 +82,6 @@ async function main() {
       userId: user.id,
       theme: 'SYSTEM',
       defaultView: 'GRID',
-      projectsPath: ['/home/user/projects'],
     },
   });
 

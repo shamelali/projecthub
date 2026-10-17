@@ -71,7 +71,6 @@
     "next": "^15.5.26",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "simple-git": "^4.0.2",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.5"
   },

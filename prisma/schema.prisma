@@ -117,7 +117,6 @@ model UserPreferences {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   theme           Theme    @default(SYSTEM)
   defaultView     ViewMode @default(GRID)
-  projectsPath    String[] @default([]) // JSON array of scan paths
   notifications   Json     @default("{}") // Per-channel preferences
   shortcuts       Json     @default("{}")
   createdAt       DateTime @default(now())
