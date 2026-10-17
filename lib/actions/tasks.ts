@@ -38,8 +38,21 @@ export async function createTask(formData: FormData) {
     },
   });
 
+  await touchProject(projectId);
+
   revalidatePath('/dashboard/tasks');
   revalidatePath('/dashboard/projects/[slug]');
+}
+
+/**
+ * Keeps `lastActivityAt` truthful: task movement is project activity, and the
+ * projects grid sorts and displays by it. Called after every task mutation.
+ */
+async function touchProject(projectId: string) {
+  await db.project.update({
+    where: { id: projectId },
+    data: { lastActivityAt: new Date() },
+  });
 }
 
 export async function moveTask(taskId: string, status: string, position: number) {
@@ -47,14 +60,17 @@ export async function moveTask(taskId: string, status: string, position: number)
   if (!session?.user?.id) redirect('/login');
 
   await requireTaskAccess(session.user.id, taskId);
-  await db.task.update({
+  const updated = await db.task.update({
     where: { id: taskId },
     data: {
       status: status as 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'BLOCKED',
       position,
       ...(status === 'DONE' ? { completedAt: new Date() } : {}),
+      ...(status !== 'DONE' ? { completedAt: null } : {}),
     },
+    select: { projectId: true },
   });
+  await touchProject(updated.projectId);
 
   revalidatePath('/dashboard/tasks');
   revalidatePath('/dashboard/projects/[slug]');
@@ -64,8 +80,9 @@ export async function deleteTask(taskId: string) {
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
 
-  await requireTaskAccess(session.user.id, taskId);
+  const task = await requireTaskAccess(session.user.id, taskId);
   await db.task.delete({ where: { id: taskId } });
+  await touchProject(task.projectId);
 
   revalidatePath('/dashboard/tasks');
   revalidatePath('/dashboard/projects/[slug]');
@@ -80,16 +97,22 @@ export async function updateTask(taskId: string, formData: FormData) {
   const description = formData.get('description') as string;
   const priority = formData.get('priority') as string;
   const assigneeId = formData.get('assigneeId') as string;
+  // A partial form (e.g. only a due-date change) sends just its own fields, so
+  // every field is guarded on presence — absent means "leave unchanged".
+  const dueDate = formData.has('dueDate') ? (formData.get('dueDate') as string) || null : null;
 
-  await db.task.update({
+  const updated = await db.task.update({
     where: { id: taskId },
     data: {
       title: title || undefined,
       description: description || undefined,
       priority: (priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL') || undefined,
-      assigneeId: assigneeId || null,
+      ...(formData.has('assigneeId') ? { assigneeId: assigneeId || null } : {}),
+      ...(formData.has('dueDate') ? { dueDate: dueDate ? new Date(dueDate) : null } : {}),
     },
+    select: { projectId: true },
   });
+  await touchProject(updated.projectId);
 
   revalidatePath('/dashboard/tasks');
   revalidatePath('/dashboard/projects/[slug]');
@@ -183,6 +206,10 @@ export async function populateTasksFromProject(projectId: string) {
     existingBranchNames.add(branch.name);
     existingTitles.add(title);
     created += 1;
+  }
+
+  if (created > 0) {
+    await touchProject(projectId);
   }
 
   revalidatePath('/dashboard/tasks');
