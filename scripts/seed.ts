@@ -17,11 +17,20 @@ const DEMO_EMAIL = process.env.DEMO_EMAIL ?? 'demo@projecthub.dev';
 // in git history, so seeding refuses to run without an explicit one.
 const DEMO_PASSWORD = requireEnv(
   'DEMO_PASSWORD',
-  'Generate one with:\n  openssl rand -base64 24\nThen export it before running pnpm db:seed.'
+  'Generate one with:\n  openssl rand -base64 24\nThen export it before running pnpm db:seed.',
 );
+
+// The demo account is only created when DEMO_MODE=true. In production this
+// is intentionally not set, so the demo account cannot exist or sign in.
+const isDemoMode = process.env.DEMO_MODE === 'true';
 
 async function main() {
   console.log('Seeding database...');
+
+  if (!isDemoMode) {
+    console.log('  Skipping demo seed (DEMO_MODE not set). Nothing to do.');
+    return;
+  }
 
   // Create demo user
   const user = await db.user.upsert({
@@ -34,17 +43,6 @@ async function main() {
     },
   });
   console.log(`  User: ${user.email}`);
-
-  // Make the seed idempotent. Projects cascade to their tasks, project notes,
-  // and members, so removing the demo user's projects clears the generated
-  // dataset. Without this, every `pnpm db:seed` duplicated all 14 tasks.
-  const { count: removedProjects } = await db.project.deleteMany({
-    where: { ownerId: user.id },
-  });
-
-  if (removedProjects > 0) {
-    console.log(`  Removed ${removedProjects} previously seeded project(s)`);
-  }
 
   // Give the demo user a real credential account so Better Auth can verify a
   // password. Without this the user exists but cannot sign in.
@@ -62,7 +60,18 @@ async function main() {
         password: await hashPassword(DEMO_PASSWORD),
       },
     });
-    console.log(`  Credential account created (password: ${DEMO_PASSWORD})`);
+    console.log(`  Credential account created (password not shown)`);
+  }
+
+  // Make the seed idempotent. Projects cascade to their tasks, project notes,
+  // and members, so removing the demo user's projects clears the generated
+  // dataset. Without this, every `pnpm db:seed` duplicated all 14 tasks.
+  const { count: removedProjects } = await db.project.deleteMany({
+    where: { ownerId: user.id },
+  });
+
+  if (removedProjects > 0) {
+    console.log(`  Removed ${removedProjects} previously seeded project(s)`);
   }
 
   // Create user preferences

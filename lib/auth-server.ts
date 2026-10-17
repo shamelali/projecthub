@@ -2,9 +2,13 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 
 import { db } from '@/lib/db';
+import { sendEmail } from '@/lib/email';
 import { syncGitHubRepositories, syncProjectGitData } from '@/lib/github';
 
 const isConfigured = (value: string | undefined) => Boolean(value?.trim());
+
+const DEMO_EMAIL = 'demo@projecthub.dev';
+const isDemoMode = process.env.DEMO_MODE === 'true';
 
 /**
  * Self-hosted Better Auth (the successor Auth.js was folded into).
@@ -24,6 +28,27 @@ export const authServer = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    // Require email verification before sign-in is allowed in production.
+    requireEmailVerification: process.env.NODE_ENV === 'production',
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendOnSignIn: false,
+    expiresIn: 60 * 60 * 24, // 24 hours
+    async sendVerificationEmail({ user, url, token }, _request) {
+      await sendEmail({
+        to: user.email,
+        subject: 'Verify your ProjectHub email',
+        text: `Verify your email address: ${url}\n\nToken: ${token}\n\nIf you didn't sign up for ProjectHub, ignore this email.`,
+        html: `<p>Verify your email address: <a href="${url}">${url}</a></p><p>Token: <code>${token}</code></p><p>If you didn't sign up for ProjectHub, ignore this email.</p>`,
+      });
+    },
+  },
+  rateLimit: {
+    enabled: process.env.NODE_ENV === 'production',
+    window: 60, // 1 minute
+    max: 10, // 10 requests per window
+    storage: 'memory',
   },
   user: {
     modelName: 'User',
@@ -88,6 +113,25 @@ export const authServer = betterAuth({
               // is unreachable or the token lacks the `repo` scope.
             }
           })();
+        },
+        /**
+         * Block the demo account from signing in via credentials when not in
+         * demo mode. The demo user record may exist in the database from a
+         * previous seed, but without DEMO_MODE=true it must not be usable.
+         */
+        before: async (session) => {
+          if (isDemoMode) return;
+
+          const user = await db.user.findUnique({
+            where: { id: session.userId },
+            select: { email: true },
+          });
+
+          if (user?.email === DEMO_EMAIL) {
+            throw new Error(
+              'Demo account is disabled. Create your own account to sign in.',
+            );
+          }
         },
       },
     },
