@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 
 import { db } from '@/lib/db';
-import { syncProjectGitData } from '@/lib/github';
+import { fetchRepoPushedAt, syncProjectGitData } from '@/lib/github';
 
 // Hobby plan caps Node functions at 60s. 79 repo-linked projects × ~2s each
 // would blow that sequentially, so the run below fans out across workers and
@@ -25,7 +25,7 @@ interface SyncOutcome {
 
 /**
  * Daily refresh of git activity (branches + commits) for every project linked
- * to a GitHub repository, and of `lastActivityAt` from the newest commit.
+ * to a GitHub repository, and of `lastActivityAt` from the repo's pushed_at.
  *
  * Invoked by the Vercel Cron job defined in vercel.json (`0 4 * * *`), which
  * sends `Authorization: Bearer $CRON_SECRET` when that env var is set.
@@ -88,24 +88,21 @@ async function runSync() {
           userId: project.ownerId,
           accessToken,
         });
-        // Git activity only moves `lastActivityAt` forward — never backwards
-        // over fresher in-app activity.
-        const latest = await db.gitCommit.findFirst({
-          where: { projectId: project.id },
-          orderBy: { authorDate: 'desc' },
-          select: { authorDate: true },
+        // `pushed_at` covers pushes to any branch; the commits endpoint only
+        // sees the default branch. Git activity moves `lastActivityAt`
+        // forward only — never backwards over fresher in-app activity.
+        const current = await db.project.findUnique({
+          where: { id: project.id },
+          select: { repositoryUrl: true, lastActivityAt: true },
         });
-        if (latest) {
-          const current = await db.project.findUnique({
+        const pushedAt = current?.repositoryUrl
+          ? await fetchRepoPushedAt(accessToken, current.repositoryUrl)
+          : null;
+        if (pushedAt && current && pushedAt > current.lastActivityAt) {
+          await db.project.update({
             where: { id: project.id },
-            select: { lastActivityAt: true },
+            data: { lastActivityAt: pushedAt },
           });
-          if (current && latest.authorDate > current.lastActivityAt) {
-            await db.project.update({
-              where: { id: project.id },
-              data: { lastActivityAt: latest.authorDate },
-            });
-          }
         }
         outcomes.push({ projectId: project.id, synced: true, ...result });
       } catch (error) {

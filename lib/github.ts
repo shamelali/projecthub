@@ -148,6 +148,38 @@ export function parseRepoFromUrl(url: string): { owner: string; repo: string } |
   return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
 }
 
+/**
+ * Fetches a repository's `pushed_at` timestamp — the true last-activity date,
+ * because it covers pushes to *any* branch, while the commits endpoint only
+ * sees the default branch. Returns null for GitLab URLs, unknown repos, or
+ * network/auth failures (callers treat null as "no update").
+ */
+export async function fetchRepoPushedAt(
+  accessToken: string,
+  repositoryUrl: string
+): Promise<Date | null> {
+  const parsed = parseRepoFromUrl(repositoryUrl);
+  if (!parsed) return null;
+
+  try {
+    const res = await fetch(`${GITHUB_API}/repos/${parsed.owner}/${parsed.repo}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const repo = (await res.json()) as { pushed_at?: string };
+    if (!repo.pushed_at) return null;
+    const date = new Date(repo.pushed_at);
+    return Number.isNaN(date.getTime()) ? null : date;
+  } catch {
+    return null;
+  }
+}
+
 /** Fetch every branch for a repository. */
 async function fetchBranches(
   accessToken: string,
