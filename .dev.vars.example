@@ -1,1 +1,4 @@
 NEXTJS_ENV=development
+# Hyperdrive local emulation (required by `pnpm cf:deploy` / `cf:preview`).
+# Use the POOLED Neon URL; never commit the real value — keep it in .dev.vars.
+CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="postgresql://user:pass@ep-xxx-pooler.us-east-1.neon.tech/neondb?sslmode=require"
