@@ -30,6 +30,14 @@ export const authServer = betterAuth({
     minPasswordLength: 8,
     // Require email verification before sign-in is allowed in production.
     requireEmailVerification: process.env.NODE_ENV === 'production',
+    async sendResetPassword({ user, url, token }, _request) {
+      await sendEmail({
+        to: user.email,
+        subject: 'Reset your ProjectHub password',
+        text: `Reset your password: ${url}\n\nToken: ${token}\n\nIf you didn't request this, ignore this email.`,
+        html: `<p>Reset your password: <a href="${url}">${url}</a></p><p>Token: <code>${token}</code></p><p>If you didn't request this, ignore this email.</p>`,
+      });
+    },
   },
   emailVerification: {
     sendOnSignUp: true,
