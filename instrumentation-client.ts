@@ -11,3 +11,9 @@ Sentry.init({
   environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.NODE_ENV,
   tracesSampleRate: 0.1,
 });
+
+/**
+ * Instruments client-side navigation transitions as Sentry spans.
+ * The SDK reports this as required for router instrumentation.
+ */
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

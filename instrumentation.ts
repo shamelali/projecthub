@@ -5,6 +5,8 @@
  * `sentry.server.config.ts` / `sentry.edge.config.ts`; without this the SDK
  * reports an incomplete configuration.
  */
+import * as Sentry from '@sentry/nextjs';
+
 export async function register() {
   // Edge runtime has no Node APIs, so it needs its own init.
   if (process.env.NEXT_RUNTIME === 'edge') {
@@ -16,3 +18,9 @@ export async function register() {
   const { initServer } = await import('@/lib/sentry/server');
   initServer();
 }
+
+/**
+ * Reports server-side render/route errors to Sentry.
+ * The SDK flags its absence as outdated configuration.
+ */
+export const onRequestError = Sentry.captureRequestError;
