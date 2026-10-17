@@ -1,16 +1,30 @@
-import { Bell, Palette, Shield, User } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
+import { AppearanceForm } from '@/components/settings/appearance-form';
+import { NotificationsForm } from '@/components/settings/notifications-form';
+import { ProfileForm } from '@/components/settings/profile-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 
+type NotificationPrefs = { email?: boolean; push?: boolean };
+
 export default async function SettingsPage() {
   const session = await auth();
 
-  const preferences = await db.userPreferences.findUnique({
-    where: { userId: session?.user?.id },
-  });
+  const [user, preferences] = await Promise.all([
+    session?.user?.id
+      ? db.user.findUnique({ where: { id: session.user.id } })
+      : Promise.resolve(null),
+    db.userPreferences.findUnique({
+      where: { userId: session?.user?.id },
+    }),
+  ]);
+
+  const notifications = (preferences?.notifications as NotificationPrefs | null) ?? {};
+  const emailNotifications = notifications.email ?? true;
+  const pushNotifications = notifications.push ?? false;
 
   return (
     <div className="space-y-6">
@@ -20,89 +34,17 @@ export default async function SettingsPage() {
       </div>
 
       <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Profile</CardTitle>
-                <CardDescription>Your account information</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Name</span>
-              <span className="text-sm font-medium">{session?.user?.name || 'Not set'}</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Email</span>
-              <span className="text-sm font-medium">{session?.user?.email}</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Role</span>
-              <span className="text-sm font-medium">Personal</span>
-            </div>
-          </CardContent>
-        </Card>
+        <ProfileForm
+          name={user?.name ?? session?.user?.name ?? ''}
+          email={session?.user?.email ?? ''}
+        />
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Palette className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>Theme and display preferences</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Theme</span>
-              <span className="text-sm font-medium capitalize">
-                {preferences?.theme?.toLowerCase() || 'System'}
-              </span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Default View</span>
-              <span className="text-sm font-medium capitalize">
-                {preferences?.defaultView?.toLowerCase() || 'Grid'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        <AppearanceForm
+          theme={preferences?.theme ?? 'SYSTEM'}
+          defaultView={preferences?.defaultView ?? 'GRID'}
+        />
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Bell className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Notifications</CardTitle>
-                <CardDescription>Manage notification preferences</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Email Notifications</span>
-              <span className="text-sm font-medium">Enabled</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Push Notifications</span>
-              <span className="text-sm font-medium">Disabled</span>
-            </div>
-          </CardContent>
-        </Card>
+        <NotificationsForm email={emailNotifications} push={pushNotifications} />
 
         <Card>
           <CardHeader>
