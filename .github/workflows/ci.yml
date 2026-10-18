@@ -36,6 +36,10 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+# NOTE: disabled while the account-wide GitHub Actions billing lock prevents
+# any workflow from starting (every run was `startup_failure`, 0s). The local
+# pre-push gate (scripts/pre-push-check.sh) is the authoritative quality gate
+# until then. Re-enable with:  gh workflow enable ci.yml
