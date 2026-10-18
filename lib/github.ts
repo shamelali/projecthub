@@ -42,7 +42,7 @@ function slugify(name: string): string {
 }
 
 /** Generate a globally unique slug. (`slug` is globally unique on Project.) */
-async function uniqueSlug(base: string, _ownerId: string): Promise<string> {
+export async function uniqueSlug(base: string, _ownerId: string): Promise<string> {
   let slug = slugify(base) || 'project';
   let attempt = 0;
   while (await db.project.findFirst({ where: { slug } })) {

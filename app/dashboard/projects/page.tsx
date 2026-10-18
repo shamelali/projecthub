@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { FolderGit2, Plus, Search } from 'lucide-react';
 
 import { GitHubImportButton } from '@/components/github-import';
+import { ImportLocalButton } from '@/components/import-local';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +56,10 @@ export default async function ProjectsPage({
             New Project
           </Button>
         </Link>
-        <GitHubImportButton className="w-auto" />
+        <div className="flex items-center gap-2">
+          <GitHubImportButton className="w-auto" />
+          <ImportLocalButton />
+        </div>
       </div>
 
       {/* Plain GET form: no client JS needed, and ?q= URLs are shareable. */}
@@ -96,9 +100,12 @@ export default async function ProjectsPage({
             </Button>
           </Link>
           <p className="mt-4 text-sm text-muted-foreground">
-            Or connect GitHub to import your repositories automatically.
+            Or import your repositories from GitHub — or a local folder.
           </p>
-          <GitHubImportButton className="mt-2 mx-auto" />
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <GitHubImportButton className="w-auto" />
+            <ImportLocalButton />
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
