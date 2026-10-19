@@ -1,6 +1,16 @@
 import { db } from '@/lib/db';
+import { uniqueSlug } from '@/lib/slugs';
 
 const GITHUB_API = 'https://api.github.com';
+
+/** Authenticated GitHub REST headers shared by every request below. */
+function githubHeaders(accessToken: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+}
 
 interface GitHubRepo {
   id: number;
@@ -34,22 +44,11 @@ interface GitHubCommit {
   stats?: { additions: number; deletions: number; total: number };
 }
 
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
-
-/** Generate a globally unique slug. (`slug` is globally unique on Project.) */
-export async function uniqueSlug(base: string, _ownerId: string): Promise<string> {
-  let slug = slugify(base) || 'project';
-  let attempt = 0;
-  while (await db.project.findFirst({ where: { slug } })) {
-    attempt += 1;
-    slug = `${slugify(base)}-${attempt}`;
-  }
-  return slug;
+/** Extract `owner`/`repo` from a GitHub repository URL. */
+export function parseRepoFromUrl(url: string): { owner: string; repo: string } | null {
+  const match = url.match(/^https:\/\/github\.com\/([^/]+?)\/([^/]+?)\/?$/);
+  if (!match) return null;
+  return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
 }
 
 function parseNextPage(link?: string | null): string | null {
@@ -66,11 +65,7 @@ async function fetchAllRepositories(accessToken: string): Promise<GitHubRepo[]> 
 
   while (url) {
     const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
+      headers: githubHeaders(accessToken),
       cache: 'no-store',
     });
     if (!res.ok) {
@@ -110,7 +105,7 @@ export async function syncGitHubRepositories(params: {
   let imported = 0;
   const newProjectIds: string[] = [];
   for (const repo of repos) {
-    const slug = await uniqueSlug(repo.full_name, userId);
+    const slug = await uniqueSlug(repo.full_name);
     const path = `github:${userId}/${repo.full_name}`;
     const data = {
       name: repo.name,
@@ -141,13 +136,6 @@ export async function syncGitHubRepositories(params: {
   return { imported, total: repos.length, newProjectIds };
 }
 
-/** Extract `owner`/`repo` from a GitHub repository URL. */
-export function parseRepoFromUrl(url: string): { owner: string; repo: string } | null {
-  const match = url.match(/^https:\/\/github\.com\/([^/]+?)\/([^/]+?)\/?$/);
-  if (!match) return null;
-  return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
-}
-
 /**
  * Fetches a repository's `pushed_at` timestamp — the true last-activity date,
  * because it covers pushes to *any* branch, while the commits endpoint only
@@ -163,11 +151,7 @@ export async function fetchRepoPushedAt(
 
   try {
     const res = await fetch(`${GITHUB_API}/repos/${parsed.owner}/${parsed.repo}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
+      headers: githubHeaders(accessToken),
       cache: 'no-store',
     });
     if (!res.ok) return null;
@@ -187,11 +171,7 @@ async function fetchBranches(
   repo: string
 ): Promise<GitHubBranch[]> {
   const res = await fetch(`${GITHUB_API}/repos/${owner}/${repo}/branches?per_page=100`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
+    headers: githubHeaders(accessToken),
     cache: 'no-store',
   });
   if (!res.ok) return [];
@@ -210,11 +190,7 @@ async function fetchCommits(
   if (ref) url.searchParams.set('sha', ref);
 
   const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
+    headers: githubHeaders(accessToken),
     cache: 'no-store',
   });
   if (!res.ok) return [];
@@ -267,69 +243,47 @@ export async function syncProjectGitData(params: {
   let commitCount = 0;
   for (const commit of defaultCommits) {
     const author = commit.commit.author;
+    // The commits summary endpoint already returns the fields we persist, so
+    // one payload object feeds both the upsert's create and update halves.
+    const commitData = {
+      message: commit.commit.message,
+      authorName: author.name,
+      authorEmail: author.email,
+      authorDate: new Date(author.date),
+      committerDate: new Date(commit.commit.committer.date),
+      url: commit.html_url,
+      branchName: 'default',
+      isMerge: commit.parents.length > 1,
+      parents: commit.parents.map((p) => p.sha),
+      ...(commit.stats
+        ? {
+            stats: {
+              additions: commit.stats.additions,
+              deletions: commit.stats.deletions,
+              files: 0,
+            },
+          }
+        : {}),
+    };
     await db.gitCommit.upsert({
       where: { projectId_sha: { projectId, sha: commit.sha } },
-      update: {
-        message: commit.commit.message,
-        authorName: author.name,
-        authorEmail: author.email,
-        authorDate: new Date(author.date),
-        committerDate: new Date(commit.commit.committer.date),
-        url: commit.html_url,
-        branchName: 'default',
-        isMerge: commit.parents.length > 1,
-        parents: commit.parents.map((p) => p.sha),
-        ...(commit.stats
-          ? {
-              stats: {
-                additions: commit.stats.additions,
-                deletions: commit.stats.deletions,
-                files: 0,
-              },
-            }
-          : {}),
-      },
-      create: {
-        projectId,
-        sha: commit.sha,
-        shortSha: commit.sha.slice(0, 7),
-        message: commit.commit.message,
-        authorName: author.name,
-        authorEmail: author.email,
-        authorDate: new Date(author.date),
-        committerDate: new Date(commit.commit.committer.date),
-        url: commit.html_url,
-        branchName: 'default',
-        isMerge: commit.parents.length > 1,
-        parents: commit.parents.map((p) => p.sha),
-        ...(commit.stats
-          ? {
-              stats: {
-                additions: commit.stats.additions,
-                deletions: commit.stats.deletions,
-                files: 0,
-              },
-            }
-          : {}),
-      },
+      update: commitData,
+      create: { projectId, sha: commit.sha, shortSha: commit.sha.slice(0, 7), ...commitData },
     });
     commitCount += 1;
   }
 
+  const defaultBranchName = 'default';
   let branchCount = 0;
   for (const branch of branches) {
+    const branchData = {
+      lastCommitSha: branch.commit.sha,
+      isDefault: branch.name === defaultBranchName,
+    };
     await db.gitBranch.upsert({
       where: { projectId_name: { projectId, name: branch.name } },
-      update: {
-        lastCommitSha: branch.commit.sha,
-        isDefault: branch.name === 'default',
-      },
-      create: {
-        projectId,
-        name: branch.name,
-        isDefault: branch.name === 'default',
-        lastCommitSha: branch.commit.sha,
-      },
+      update: branchData,
+      create: { projectId, name: branch.name, ...branchData },
     });
     branchCount += 1;
   }

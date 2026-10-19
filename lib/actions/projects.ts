@@ -5,8 +5,8 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { uniqueSlug } from '@/lib/github';
 import { requireProjectAccess } from '@/lib/permissions';
+import { slugify, uniqueSlug } from '@/lib/slugs';
 
 export async function createProject(formData: FormData) {
   const session = await auth();
@@ -19,10 +19,7 @@ export async function createProject(formData: FormData) {
 
   if (!name || !path) return { error: 'Name and path are required' };
 
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+  const slug = slugify(name);
 
   const existing = await db.project.findUnique({ where: { slug } });
   if (existing) return { error: 'A project with this name already exists' };
@@ -122,7 +119,7 @@ export async function importLocalProjects(items: LocalProjectInput[]): Promise<I
         },
       });
     } else {
-      const slug = await uniqueSlug(name, userId);
+      const slug = await uniqueSlug(name);
       await db.project.create({
         data: {
           name,

@@ -3,6 +3,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 
 import { db } from '@/lib/db';
 import { sendEmail } from '@/lib/email';
+import { getGitHubAccessToken } from '@/lib/github-token';
 import { syncGitHubRepositories, syncProjectGitData } from '@/lib/github';
 
 const isConfigured = (value: string | undefined) => Boolean(value?.trim());
@@ -90,11 +91,7 @@ export const authServer = betterAuth({
         after: async (session) => {
           void (async () => {
             try {
-              const account = await db.account.findFirst({
-                where: { userId: session.userId, providerId: 'github' },
-                select: { accessToken: true },
-              });
-              const accessToken = account?.accessToken;
+              const accessToken = await getGitHubAccessToken(session.userId);
               if (!accessToken) return;
 
               const projectCount = await db.project.count({

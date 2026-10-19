@@ -14,8 +14,9 @@
  */
 import { PrismaClient } from '@prisma/client';
 
+import { COMMIT_TAG_PREFIX } from '@/lib/task-tags';
+
 const db = new PrismaClient();
-const COMMIT_TAG = 'source:commit:';
 
 async function main() {
   const tasks = await db.task.findMany({
@@ -26,7 +27,7 @@ async function main() {
   const commitTagged = tasks
     .map((task) => ({
       ...task,
-      sha: task.tags.find((tag) => tag.startsWith(COMMIT_TAG))?.slice(COMMIT_TAG.length),
+      sha: task.tags.find((tag) => tag.startsWith(COMMIT_TAG_PREFIX))?.slice(COMMIT_TAG_PREFIX.length),
     }))
     .filter((task): task is typeof task & { sha: string } => Boolean(task.sha));
 

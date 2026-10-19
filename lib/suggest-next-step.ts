@@ -11,6 +11,8 @@
  * `now` is injectable so callers (and tests) can pin the clock.
  */
 
+import { branchFromTags, shaFromTags } from '@/lib/task-tags';
+
 export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'BLOCKED';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -37,8 +39,6 @@ export interface NextStepSuggestion {
   relatedBranch?: string;
 }
 
-const COMMIT_TAG = 'source:commit:';
-const BRANCH_TAG = 'source:branch:';
 const DAY_MS = 24 * 3600 * 1000;
 
 function toDate(value: Date | string | null | undefined): Date | null {
@@ -62,8 +62,8 @@ export function suggestNextStep(
   const status = task.status as TaskStatus;
   const priority = task.priority as TaskPriority;
   const tags = task.tags ?? [];
-  const relatedSha = tags.find((tag) => tag.startsWith(COMMIT_TAG))?.slice(COMMIT_TAG.length);
-  const relatedBranch = tags.find((tag) => tag.startsWith(BRANCH_TAG))?.slice(BRANCH_TAG.length);
+  const relatedSha = shaFromTags(tags);
+  const relatedBranch = branchFromTags(tags);
 
   const dueDate = toDate(task.dueDate);
   const startedAt = toDate(task.startedAt);

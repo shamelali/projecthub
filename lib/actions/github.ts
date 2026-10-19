@@ -2,6 +2,7 @@
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { getGitHubAccessToken } from '@/lib/github-token';
 import { parseRepoFromUrl, syncGitHubRepositories, syncProjectGitData } from '@/lib/github';
 
 export async function importGitHubRepositories() {
@@ -10,18 +11,15 @@ export async function importGitHubRepositories() {
     return { error: 'Not signed in' };
   }
 
-  const account = await db.account.findFirst({
-    where: { userId: session.user.id, providerId: 'github' },
-    select: { accessToken: true },
-  });
+  const accessToken = await getGitHubAccessToken(session.user.id);
 
-  if (!account?.accessToken) {
+  if (!accessToken) {
     return { error: 'No GitHub account is linked to this account' };
   }
 
   return syncGitHubRepositories({
     userId: session.user.id,
-    accessToken: account.accessToken,
+    accessToken,
   });
 }
 
@@ -44,18 +42,15 @@ export async function syncProjectGitDataAction(projectId: string) {
     return { error: 'Project is not linked to a GitHub repository' };
   }
 
-  const account = await db.account.findFirst({
-    where: { userId: session.user.id, providerId: 'github' },
-    select: { accessToken: true },
-  });
+  const accessToken = await getGitHubAccessToken(session.user.id);
 
-  if (!account?.accessToken) {
+  if (!accessToken) {
     return { error: 'No GitHub account is linked to this account' };
   }
 
   return syncProjectGitData({
     projectId,
     userId: session.user.id,
-    accessToken: account.accessToken,
+    accessToken,
   });
 }

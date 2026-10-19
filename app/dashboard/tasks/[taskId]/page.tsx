@@ -19,36 +19,9 @@ import { updateTask } from '@/lib/actions/tasks';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { requireTaskAccess } from '@/lib/permissions';
+import { statusMeta, priorityBadgeVariant } from '@/lib/task-status';
 import { suggestNextStep } from '@/lib/suggest-next-step';
 import { formatDate, formatRelativeDate } from '@/lib/utils';
-
-const priorityVariant = (priority: string) => {
-  switch (priority) {
-    case 'CRITICAL':
-      return 'destructive';
-    case 'HIGH':
-      return 'default';
-    case 'MEDIUM':
-      return 'secondary';
-    default:
-      return 'outline';
-  }
-};
-
-const statusVariant = (status: string) => {
-  switch (status) {
-    case 'DONE':
-      return 'default';
-    case 'IN_PROGRESS':
-      return 'secondary';
-    case 'IN_REVIEW':
-      return 'outline';
-    case 'BLOCKED':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
-};
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
   const { taskId } = await params;
@@ -148,8 +121,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ tas
       <Card>
         <CardHeader className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
-            <Badge variant={priorityVariant(task.priority)}>{task.priority}</Badge>
+            <Badge variant={statusMeta(task.status).badgeVariant}>{task.status}</Badge>
+            <Badge variant={priorityBadgeVariant(task.priority)}>{task.priority}</Badge>
           </div>
           <CardTitle className="text-xl leading-snug">{task.title}</CardTitle>
         </CardHeader>

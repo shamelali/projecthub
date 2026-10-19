@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { AlertCircle, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { projectAccessWhere } from '@/lib/permissions';
+import { statusMeta } from '@/lib/task-status';
 import { formatDate, formatRelativeDate } from '@/lib/utils';
 
 import { AutoPopulateProjects } from './auto-populate';
@@ -45,34 +46,6 @@ export default async function TasksPage() {
       })
     : [];
 
-  const statusIcon = (status: string) => {
-    switch (status) {
-      case 'DONE':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case 'IN_PROGRESS':
-        return <Clock className="h-4 w-4 text-blue-500" />;
-      case 'BLOCKED':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Circle className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
-  const statusVariant = (status: string) => {
-    switch (status) {
-      case 'DONE':
-        return 'default';
-      case 'IN_PROGRESS':
-        return 'secondary';
-      case 'IN_REVIEW':
-        return 'outline';
-      case 'BLOCKED':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -105,12 +78,14 @@ export default async function TasksPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {tasks.map((task) => (
+          {tasks.map((task) => {
+            const { icon: StatusIcon, iconClassName, badgeVariant } = statusMeta(task.status);
+            return (
             <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="block">
               <Card className="transition-shadow hover:shadow-md">
                 <CardContent className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    {statusIcon(task.status)}
+                    <StatusIcon className={`h-4 w-4 ${iconClassName}`} />
                     <div>
                       <p className="font-medium">{task.title}</p>
                       <p className="text-xs text-muted-foreground">
@@ -130,13 +105,14 @@ export default async function TasksPage() {
                     >
                       {task.dueDate ? formatDate(task.dueDate) : formatRelativeDate(task.createdAt)}
                     </span>
-                    <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
+                    <Badge variant={badgeVariant}>{task.status}</Badge>
                     <Badge variant="outline">{task.priority}</Badge>
                   </div>
                 </CardContent>
               </Card>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

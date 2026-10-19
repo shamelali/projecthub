@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { requireProjectAccess, requireTaskAccess } from '@/lib/permissions';
+import { branchTag, branchesFromTags, commitTag, shasFromTags } from '@/lib/task-tags';
 
 export async function createTask(formData: FormData) {
   const session = await auth();
@@ -141,18 +142,10 @@ export async function populateTasksFromProject(projectId: string) {
 
   // Tags recorded on auto-created tasks so re-populating is idempotent.
   const existingCommitShas = new Set(
-    project.tasks.flatMap((task) =>
-      task.tags
-        .filter((tag) => tag.startsWith('source:commit:'))
-        .map((tag) => tag.slice('source:commit:'.length))
-    )
+    project.tasks.flatMap((task) => shasFromTags(task.tags))
   );
   const existingBranchNames = new Set(
-    project.tasks.flatMap((task) =>
-      task.tags
-        .filter((tag) => tag.startsWith('source:branch:'))
-        .map((tag) => tag.slice('source:branch:'.length))
-    )
+    project.tasks.flatMap((task) => branchesFromTags(task.tags))
   );
   const existingTitles = new Set(project.tasks.map((task) => task.title));
 
@@ -177,7 +170,7 @@ export async function populateTasksFromProject(projectId: string) {
         // The date the commit's work actually happened. completedAt is
         // deliberately not set — that is owned by the DONE transition.
         startedAt: commit.authorDate,
-        tags: [`source:commit:${commit.sha}`, `author:${commit.authorName}`],
+        tags: [commitTag(commit.sha), `author:${commit.authorName}`],
       },
     });
     existingCommitShas.add(commit.sha);
@@ -200,7 +193,7 @@ export async function populateTasksFromProject(projectId: string) {
         reporterId: session.user.id,
         status: 'BACKLOG',
         priority: 'LOW',
-        tags: [`source:branch:${branch.name}`],
+        tags: [branchTag(branch.name)],
       },
     });
     existingBranchNames.add(branch.name);

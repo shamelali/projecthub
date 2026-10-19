@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { deleteTask } from '@/lib/actions/tasks';
+import { priorityBadgeVariant } from '@/lib/task-status';
 import { formatDate, formatRelativeDate } from '@/lib/utils';
 
 interface TaskCardProps {
@@ -28,19 +29,6 @@ export function TaskCard({ task }: TaskCardProps) {
   const handleDelete = async () => {
     await deleteTask(task.id);
     router.refresh();
-  };
-
-  const priorityVariant = (priority: string) => {
-    switch (priority) {
-      case 'CRITICAL':
-        return 'destructive';
-      case 'HIGH':
-        return 'default';
-      case 'MEDIUM':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
   };
 
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
@@ -72,7 +60,7 @@ export function TaskCard({ task }: TaskCardProps) {
           <span className="text-xs text-muted-foreground">
             {task.assignee?.name || 'Unassigned'}
           </span>
-          <Badge variant={priorityVariant(task.priority)} className="text-[10px]">
+          <Badge variant={priorityBadgeVariant(task.priority)} className="text-[10px]">
             {task.priority}
           </Badge>
         </div>
