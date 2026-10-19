@@ -14,7 +14,54 @@ ProjectHub — Installation, deployment, and operations
 - Node.js >= 20
 - pnpm (via corepack: `corepack enable pnpm`)
 - Neon PostgreSQL database (or local Postgres 16 via Docker)
-- GitHub/GitLab OAuth apps (optional, for OAuth sign-in)
+- GitHub/GitLab OAuth apps (optional, for OAuth sign-in) — see "OAuth provider setup" below
+
+## OAuth provider setup
+
+Sign-in providers are enabled purely by configuration: each one appears on the
+sign-in screen only when **both** of its env vars are non-empty
+(`lib/auth-server.ts` → `socialProviders`). No code changes are needed.
+
+### GitHub OAuth App
+
+1. Open <https://github.com/settings/developers> → **OAuth Apps** → *New OAuth App*.
+   (Use a classic **OAuth App**, not a GitHub App — Better Auth's `github`
+   social provider speaks the OAuth-App protocol.)
+2. Fill in:
+   - **Application name**: ProjectHub
+   - **Homepage URL**: your deployment origin, e.g. `https://<your-app>.vercel.app`
+     (in dev: `http://localhost:3000`)
+   - **Authorization callback URL**: `<same origin>/api/auth/callback/github`
+     (basePath `/api/auth` + `/callback/<provider>`; verified against the
+     better-auth 1.7.9 route table) — exactly one callback URL per OAuth App;
+     use separate apps for preview/prod environments.
+3. Generate a **client secret** and copy the **Client ID**.
+4. Set the variables (Vercel: *Settings → Environment Variables*; local: `.env.local`):
+   ```bash
+   GITHUB_ID=<client-id>
+   GITHUB_SECRET=<client-secret>
+   ```
+5. Ensure `BETTER_AUTH_URL` matches the origin used in steps 2/3 — a mismatch
+   breaks the callback redirect. In production also add the origin to
+   `BETTER_AUTH_TRUSTED_ORIGINS`.
+6. The app requests the `repo` scope at sign-in (plus GitHub's default
+   `read:user`/`user:email`), which is what powers repository import and the
+   daily git-sync cron (`lib/github-token.ts` reads the stored access token).
+
+### GitLab OAuth
+
+Same pattern: create an application at
+<https://gitlab.com/-/profile/applications> with redirect URI
+`<origin>/api/auth/callback/gitlab`, then set `GITLAB_ID` /
+`GITLAB_SECRET`.
+
+### Verify
+
+After deploying, the provider button must appear on `/signin`
+(`configuredProviders` in `lib/auth.ts` flips automatically once the vars are
+set). Complete a browser sign-in end-to-end and confirm a row with
+`providerId = "github"` and a non-null `accessToken` exists in the `account`
+table — that token is what all server-side GitHub API calls reuse.
 - Supabase project (for Realtime — v0.2)
 - Vercel account (recommended deployment) or Docker host
 
