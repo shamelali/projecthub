@@ -1,5 +1,7 @@
 # ProjectHub
 
+> ⚠️ **Archived / legacy** — This repository is superseded by [DutaSuite](/media/shamelali/Data/1-Projects/DutaSuite). All active development, issues, and deployments live in DutaSuite. See DutaSuite's README for the current stack, features, and deployment instructions.
+
 A full-stack project management platform for developers, teams, and clients. Provides a unified dashboard to discover, track, and manage software projects across local filesystems, Git repositories, CI/CD pipelines, and AI coding sessions.
 
 ## Tech Stack
